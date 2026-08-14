@@ -1,0 +1,12 @@
+{
+  "name": "sysclass-workbench",
+  "version": "1.0.0",
+  "description": "系统班打卡与PK工作台",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>系统班 · 打卡与PK工作台（v9 复刻版）</title>
+<style>
+  :root{
+    --bg:#FFF9FB; --card:#ffffff; --ink:#5b5570; --sub:#a59cb8;
+    --line:#f4e9f1; --brand:#C9B8FF; --brand-soft:#f3eeff;
+    --pink:#FFB7C5; --pink-soft:#ffe9ef;
+    --green:#B5EAD7; --green-soft:#e8f8f1;
+    --yellow:#FFE5A0; --yellow-soft:#fff6e0;
+    --sky:#A0D8FF; --sky-soft:#eaf6ff;
+    --peach:#FFD3B6; --peach-soft:#fff0e8;
+    --ok:#B5EAD7; --ok-soft:#e8f8f1;
+    --warn:#FFE5A0; --warn-soft:#fff6e0;
+    --pending:#E7E0F0; --pending-soft:#f6f1fb;
+    --danger:#FFB7C5; --danger-soft:#ffe9ef;
+    --radius:20px; --radius-sm:14px; --shadow:0 8px 24px rgba(201,184,255,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;letter-spacing:.2px}
+  #root{min-height:100vh}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+  .card h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .card .desc{color:var(--sub);font-size:12.5px;margin:0 0 14px}
+  .sec-title{font-size:13.5px;font-weight:800;color:#7a5fd0;margin:16px 0 6px}
+  .callout{background:var(--brand-soft);color:#7a5fd0;border-radius:14px;padding:10px 12px;
+    font-size:13px;margin:0 0 12px;line-height:1.5;font-weight:700}
+  .note{background:var(--yellow-soft);color:#8a6d00;border:1px solid #ffe9b0;border-radius:14px;
+    padding:10px 12px;font-size:12.5px;margin:12px 0;line-height:1.5}
+  .empty{color:var(--sub);font-size:13px;text-align:center;padding:18px;background:var(--pending-soft);border-radius:14px}
+  .pill{font-size:11px;background:var(--pending-soft);color:var(--sub);padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .date-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  input[type=date],input[type=text],input[type=number],select{border:2px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;color:var(--ink);background:#fff;font-family:inherit}
+  textarea{width:100%;border:2px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;
+    font-size:14px;font-family:inherit;color:var(--ink);background:#fff;resize:vertical}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--brand)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:999px;
+    background:linear-gradient(135deg,#C9B8FF,#FFB7C5);color:#fff;font-weight:700;font-size:15px;padding:12px 18px;cursor:pointer;width:100%;margin-top:12px;transition:.18s;box-shadow:0 6px 16px rgba(201,184,255,.3)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(201,184,255,.4)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:var(--brand-soft);color:#7a5fd0;box-shadow:none}
+  .btn.danger{background:#fff;color:#e06a86;border:2px solid var(--pink)}
+  .btn.sm{width:auto;padding:8px 16px;font-size:13px;margin-top:0}
+  .btn-exit{border:0;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.35);color:#fff;flex:0 0 auto;transition:.15s}
+  .btn-exit:active{background:rgba(255,255,255,.55)}
+  .pk-item{border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff}
+  .pk-item .hd{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:6px}
+  .pk-item .ct{font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .fb-box{margin-top:10px;background:var(--brand-soft);border-radius:12px;padding:10px;font-size:13px}
+  .fb-box .fl{color:#7a5fd0;font-weight:700;font-size:12px;margin-bottom:4px}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .badge.pending{background:var(--yellow-soft);color:#8a6d00}
+  .badge.done{background:var(--green-soft);color:#3fae84}
+  .badge.team{background:var(--brand-soft);color:#7a5fd0}
+  .badge.ind{background:var(--pink-soft);color:#d06a86}
+  .badge.win{background:var(--green-soft);color:#3fae84}
+  .badge.lose{background:var(--pink-soft);color:#d06a86}
+  .badge.draw{background:var(--yellow-soft);color:#8a6d00}
+  .filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .filter-row.type{margin-top:4px}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--sub);margin:2px 0 10px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .result-row{display:flex;gap:8px;margin:8px 0}
+  .result-row button{flex:1;border:2px solid var(--line);background:#fff;border-radius:14px;padding:9px;font-weight:700;font-size:14px;cursor:pointer;color:var(--sub)}
+  .result-row button.sel-w{background:var(--green-soft);border-color:var(--green);color:#3fae84}
+  .result-row button.sel-l{background:var(--pink-soft);border-color:var(--pink);color:#d06a86}
+  .result-row button.sel-d{background:var(--yellow-soft);border-color:var(--yellow);color:#8a6d00}
+
+  /* ---------- 登录页 ---------- */
+  .login-wrap{max-width:760px;margin:0 auto;padding:30px 16px 50px}
+  .login-hero{text-align:center;margin-bottom:24px}
+  .login-hero .lh-logo{font-size:54px}
+  .login-hero h1{font-size:22px;margin:8px 0 6px;font-weight:800;letter-spacing:.5px}
+  .login-hero p{color:var(--sub);font-size:13px;margin:0}
+  .login-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .login-card{border:2px solid var(--line);border-radius:var(--radius);padding:20px;background:#fff;box-shadow:var(--shadow);text-align:center}
+  .login-card .lc-ic{font-size:44px;margin-bottom:6px}
+  .login-card h3{margin:0 0 4px;font-size:18px}
+  .login-card p{color:var(--sub);font-size:12.5px;margin:0 0 14px}
+  .login-card input{width:100%;margin-bottom:10px}
+  .acct-list{font-size:12px;color:var(--sub);background:var(--pending-soft);border-radius:12px;padding:8px 10px;margin-top:10px;line-height:1.6;text-align:left}
+  .login-note{text-align:center;color:var(--sub);font-size:12px;margin-top:22px;line-height:1.6}
+
+  /* ---------- 学生端 ---------- */
+  .stu-layout{max-width:760px;margin:0 auto;padding:0 14px 90px;min-height:100vh}
+  .stu-banner{background:linear-gradient(135deg,#C9B8FF,#FFB7C5);color:#fff;border-radius:0 0 28px 28px;padding:22px 18px 18px;box-shadow:0 8px 22px rgba(201,184,255,.35);margin:0 -14px 16px}
+  .sb-top{display:flex;align-items:center;gap:14px}
+  .sb-avatar{width:62px;height:62px;border-radius:22px;background:rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;font-size:36px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .sb-name{font-size:20px;font-weight:800}
+  .sb-sub{font-size:12.5px;opacity:.95;margin-top:3px}
+  .stu-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .stu-stat{background:rgba(255,255,255,.3);border-radius:16px;padding:10px 6px;text-align:center;backdrop-filter:blur(2px)}
+  .stu-stat b{display:block;font-size:18px;font-weight:800}
+  .stu-stat span{font-size:11px;opacity:.95}
+  .checkin-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .checkin-cell{border:2px solid var(--line);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;background:#fff;transition:.18s}
+  .checkin-cell:active{transform:scale(.98)}
+  .checkin-cell.done{border-color:var(--green);background:var(--green-soft)}
+  .cc-ic{font-size:30px}
+  .cc-lb{font-weight:700;font-size:14px;margin:6px 0 4px}
+  .cc-st{font-size:11px;color:var(--sub)}
+  .checkin-cell.done .cc-st{color:#3fae84}
+  .day-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .day-cell{border:2px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;background:#fff;transition:.18s;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .day-cell:active{transform:scale(.97)}
+  .day-cell.done{border-color:var(--green);background:var(--green-soft)}
+  .dc-ic{font-size:24px}
+  .dc-lb{font-weight:700;font-size:14px}
+  .dc-st{font-size:13px;font-weight:800;color:var(--pending)}
+  .day-cell.done .dc-st{color:#3fae84}
+  .tip-card{display:flex;align-items:center;gap:12px;background:var(--yellow-soft);border:1px solid #ffe9b0}
+  .tip-ic{font-size:30px}
+  .tip-card div:last-child{font-size:13px;color:#8a6d00}
+  .mate-row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:2px solid var(--line)}
+  .mate-row:last-child{border-bottom:0}
+  .avatar{width:42px;height:42px;border-radius:50%;background:var(--brand-soft);color:#7a5fd0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex:0 0 auto}
+  .mate-row .nm{flex:1;font-weight:700}
+  .mate-row .nm small{display:block;color:var(--sub);font-weight:400;font-size:11.5px}
+  .pos-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--pending-soft);color:var(--sub);white-space:nowrap}
+  .pos-badge.on{background:var(--brand-soft);color:#7a5fd0}
+  .post-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:2px solid var(--line)}
+  .post-row:last-child{border-bottom:0}
+  .post-row .pos{font-weight:800;color:#7a5fd0;min-width:84px}
+  .post-row .holders{color:var(--ink);font-size:14px}
+  .guide-card{background:var(--brand-soft);border-radius:16px;padding:14px;margin-bottom:12px}
+  .guide-hi{font-weight:800;color:#7a5fd0;font-size:15px;margin-bottom:4px}
+  .guide-sub{font-size:12.5px;color:#7a5fd0;opacity:.9;line-height:1.5}
+  .word-count{font-size:12px;color:#7a5fd0;margin-top:6px;text-align:right}
+  .word-count .muted{color:var(--sub);font-size:11px}
+  .stu-tabbar{position:fixed;bottom:0;left:0;right:0;max-width:760px;margin:0 auto;display:flex;background:#fff;
+    box-shadow:0 -6px 20px rgba(201,184,255,.18);border-radius:22px 22px 0 0;padding:8px 6px 10px;z-index:30}
+  .tab-item{flex:1;text-align:center;cursor:pointer;padding:4px 2px;border-radius:14px;color:var(--sub);transition:.15s}
+  .tab-item.on{background:var(--brand-soft);color:#7a5fd0}
+  .ti-ic{font-size:22px;display:block}
+  .ti-lb{font-size:11px;font-weight:700;display:block;margin-top:2px}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:10px;border-radius:18px;background:#fff;border:2px solid var(--line)}
+  .rank-row.top1{border-color:var(--yellow);background:linear-gradient(135deg,#fff6e0,#ffe9ef)}
+  .rank-row.top2{border-color:var(--pink);background:linear-gradient(135deg,#ffe9ef,#f3eeff)}
+  .rank-row.top3{border-color:var(--brand);background:linear-gradient(135deg,#f3eeff,#e8f8f1)}
+  .rank-medal{font-size:26px;width:34px;text-align:center;flex:0 0 auto}
+  .rank-row .nm{flex:1;font-weight:800}
+  .rank-row .nm small{display:block;color:var(--sub);font-weight:400;font-size:11.5px}
+  .rank-score{text-align:right;font-weight:800;color:#7a5fd0}
+  .rank-score small{display:block;color:var(--sub);font-weight:400;font-size:11px}
+
+  /* ---------- 管理员端 ---------- */
+  .admin-layout{display:flex;min-height:100vh}
+  .sidebar{width:220px;flex:0 0 auto;background:#fff;border-right:2px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sb-logo{font-size:17px;font-weight:800;color:#7a5fd0;text-align:center;line-height:1.3;margin-bottom:4px}
+  .sb-logo small{font-size:11px;color:var(--sub);font-weight:600}
+  .sb-nav{display:flex;flex-direction:column;gap:4px;margin-top:14px}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;cursor:pointer;color:var(--ink);font-weight:700;font-size:14px;transition:.15s}
+  .sb-item:hover{background:var(--brand-soft)}
+  .sb-item.on{background:linear-gradient(135deg,#C9B8FF,#FFB7C5);color:#fff;box-shadow:0 4px 12px rgba(201,184,255,.3)}
+  .sb-ic{font-size:18px}
+  .sb-foot{margin-top:14px;text-align:center;font-size:11px;color:var(--sub)}
+  .admin-main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .admin-topbar{background:linear-gradient(135deg,#C9B8FF,#FFB7C5);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:0 6px 18px rgba(201,184,255,.3)}
+  .tg-hi{font-size:20px;font-weight:800}
+  .tg-sub{font-size:12.5px;opacity:.95;margin-top:3px}
+  .top-stats{display:flex;gap:10px}
+  .top-stat{background:rgba(255,255,255,.3);border-radius:16px;padding:10px 16px;text-align:center;min-width:74px}
+  .top-stat b{display:block;font-size:22px;font-weight:800}
+  .top-stat.warn b{color:#fff}
+  .top-stat span{font-size:11px;opacity:.95}
+  .admin-content{max-width:980px;width:100%;margin:0 auto;padding:18px 18px 40px}
+  .core-card .core-item{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--line);border-radius:16px;margin-bottom:10px;cursor:pointer;background:#fff;transition:.15s}
+  .core-card .core-item.done{border-color:var(--green);background:var(--green-soft)}
+  .core-box{width:26px;height:26px;border-radius:9px;border:2px solid var(--brand);display:flex;align-items:center;justify-content:center;color:#7a5fd0;font-weight:800;flex:0 0 auto}
+  .core-item.done .core-box{background:var(--green);border-color:var(--green);color:#fff}
+  .core-text{font-size:14px;font-weight:600}
+  .core-item.done .core-text{color:#3fae84;text-decoration:line-through;opacity:.8}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+  .stat{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+  .stat .v{font-size:24px;font-weight:800;color:#7a5fd0;line-height:1.1}
+  .stat .v.ok{color:#3fae84} .stat .v.warn{color:#d99a00}
+  .stat .k{font-size:12.5px;color:var(--sub);margin-top:4px}
+  .stu-row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:2px solid var(--line)}
+  .stu-row:last-child{border-bottom:0}
+  .stu-row .nm{flex:1;font-weight:700}
+  .stu-row .nm small{display:block;color:var(--sub);font-weight:400;font-size:11.5px}
+  .dots{display:flex;gap:5px;align-items:center}
+  .dot{width:18px;height:18px;border-radius:50%;background:var(--pending-soft);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800}
+  .dot.on{background:var(--green)} .dot.off{background:var(--pending)}
+  .pk-review{border:2px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;background:#fff}
+  .pk-review .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+  .mgmt-row{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:2px solid var(--line);flex-wrap:wrap}
+  .mgmt-row:last-child{border-bottom:0}
+  .mgmt-row .id{font-weight:800;font-family:monospace;color:#7a5fd0}
+  .mgmt-row .nm{flex:1;min-width:80px}
+  .mgmt-row .nm small{display:block;color:var(--sub);font-weight:400;font-size:11px}
+  .team-group{margin-bottom:14px}
+  .team-group .cg-title{font-size:13px;font-weight:800;color:#7a5fd0;margin:6px 0 4px;display:flex;justify-content:space-between}
+  .talent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .talent-card{background:#fff;border:2px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow)}
+  .tc-head{display:flex;align-items:center;gap:10px}
+  .tc-avatar{width:48px;height:48px;border-radius:16px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto}
+  .tc-name{font-weight:800;font-size:16px}
+  .tc-role{font-size:11.5px;color:var(--sub)}
+  .tc-type{margin-left:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:var(--pending-soft);color:var(--sub);white-space:nowrap}
+  .tc-type.t-top{background:var(--yellow-soft);color:#b07a00}
+  .tc-type.t-mid{background:var(--green-soft);color:#3fae84}
+  .tc-type.t-low{background:var(--pink-soft);color:#d06a86}
+  .tc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+  .tc-tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--brand-soft);color:#7a5fd0}
+  .tc-tag.hi{background:var(--yellow-soft);color:#b07a00}
+  .tc-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pick-chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap}
+  .acct-list{font-size:12px;color:var(--sub);background:var(--pending-soft);border-radius:12px;padding:8px 10px;margin-top:6px;line-height:1.6}
+  @media(max-width:860px){
+    .admin-layout{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:static;border-right:0;border-bottom:2px solid var(--line);padding:12px}
+    .sb-nav{flex-direction:row;overflow-x:auto;margin-top:8px}
+    .sb-item{white-space:nowrap}
+    .sb-logo{text-align:left}
+    .sb-foot{display:none}
+    .login-cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ---------- 基础配置 ---------- */
+const KEY='sysclass_db_v10', SKEY='sysclass_session_v10';
+const TRAVEL_DATE='2026-08-16';
+const TRAVEL_NODES=[
+  {slot:'station',label:'前往车站',icon:'🚉',hint:'出发前往集合车站'},
+  {slot:'bus',label:'乘坐大巴',icon:'🚌',hint:'登车前往系统班会场'},
+  {slot:'venue',label:'抵达系统班会场',icon:'🏫',hint:'到达集训会场签到'},
+  {slot:'checkin',label:'完成入住',icon:'🏨',hint:'办理入住安顿完毕'}
+];
+const DAILY_SLOTS=[
+  {slot:'morning',label:'早',icon:'🌅',hint:'晨间行程打卡'},
+  {slot:'noon',label:'中',icon:'☀️',hint:'午间行程打卡'},
+  {slot:'evening',label:'晚',icon:'🌙',hint:'晚间行程打卡'}
+];
+const POSITIONS=['首席执行官','首席财务官','首席人事官','特聘战略顾问','英语督学官','体能活力官','阅读推广大使','生活服务官','氛围创意官'];
+const TEAMS=[
+  {name:'莹领先锋队',call:'勇当先锋，势必争先；May 姐领航，勇夺桂冠'},
+  {name:'莹定乾坤队',call:'莹定乾坤，全员聚力；一鼓作气，冠军必取'}
+];
+const ADMINS=[
+  {id:'coach',pwd:'sys2026',type:'coach',name:'主教练（枷莹）'},
+  {id:'ta1',  pwd:'ta001', type:'ta',   name:'助教·秀红',team:'莹领先锋队',position:'特聘战略顾问'},
+  {id:'ta2',  pwd:'ta002', type:'ta',   name:'助教·文宇',team:'莹定乾坤队',position:'特聘战略顾问'},
+  {id:'ta3',  pwd:'ta003', type:'ta',   name:'助教·鸿芬',team:'莹领先锋队',position:'特聘战略顾问'}
+];
+const DEEP_KW={
+  '首席执行官':['拉通','节奏','标杆','责任到人','影响力'],
+  '首席财务官':['守门员','准时','数据透明','倒逼','节奏'],
+  '首席人事官':['识人','激活','担当','凝聚','梯队'],
+  '特聘战略顾问':['洞察','预判','取舍','格局','路径'],
+  '英语督学官':['输入','转化','纠音','陪伴','打卡'],
+  '体能活力官':['能量','带动','坚持','状态','氛围'],
+  '阅读推广大使':['共读','输出','笔记','分享','习惯'],
+  '生活服务官':['后勤','兜底','细节','保障','无感服务'],
+  '氛围创意官':['破冰','创意','带动','情绪','安全感']
+};
+const RESULT_LABEL={win:'✅ 胜',lose:'❌ 负',draw:'➖ 平'};
+const ANIMALS=['🦊','🐰','🐻','🐱','🐯','🐼','🐨','🐸','🐵','🦁','🐶','🐮','🐷','🐔','🐧','🦉','🐹','🐰','🐢','🐙'];
+function animalFor(id){let s=0;for(const c of (id||'x'))s+=c.charCodeAt(0);return ANIMALS[s%ANIMALS.length];}
+
+let DB=null;
+let SESSION={role:null};
+
+async function loadDB(){try{const r=await fetch('/api/db');DB=await r.json()||null}catch(e){DB=null}}
+async function saveDB(){
+  for(let i=0;i<3;i++){
+    try{const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DB)});
+      if(r&&r.ok)return true;}catch(e){}
+    await new Promise(rs=>setTimeout(rs,400));
+  }
+  return false;
+}
+function loadSession(){try{SESSION=JSON.parse(localStorage.getItem(SKEY))||{role:null}}catch(e){SESSION={role:null}}}
+function saveSession(){localStorage.setItem(SKEY,JSON.stringify(SESSION))}
+/* 自动同步：每6秒拉取服务端最新数据并刷新（多设备共享） */
+setInterval(()=>{loadDB().then(()=>{if(SESSION.role)render()}).catch(()=>{})},6000);
+
+/* ---------- 复盘评分（移植自参考代码 rate_gangwei_fupan） ---------- */
+function rateReview(text,position){
+  text=text||'';
+  let score=0;
+  const kws=DEEP_KW[position]||[];
+  const hits=kws.filter(kw=>text.includes(kw)).length;
+  score+=Math.min(hits*6,30);
+  const actionCount=(text.match(/①/g)||[]).length+(text.match(/1\./g)||[]).length+(text.match(/一、/g)||[]).length;
+  score+=Math.min(actionCount*5,20);
+  let guo=0;
+  if(text.includes('因为')||text.includes('导致')||text.includes('变化'))guo+=15;
+  if(text.includes('反馈')||text.includes('说'))guo+=5;
+  score+=guo;
+  if(text.includes('知道')&&(text.includes('没做到')||text.includes('没做')||text.includes('但'))){
+    score+=25;
+    if(text.includes('因为')){const p=text.split('因为');if(p[1]&&p[1].length>10)score+=5;}
+  }else if(text.includes('没有gap')||text.includes('都做到了')){
+    score+=5;
+  }else{
+    score+=10;
+  }
+  score=Math.min(score,100);
+  const grade=score>=80?'🌟 知行合一·标杆':score>=60?'✅ 知行合一·合格':'⚠️ 知行合一·待提升';
+  return {score,grade};
+}
+
+/* ---------- 演示种子数据 ---------- */
+function demoTalent(){const t=Date.now();return [
+  {id:'t1',adminId:'ta1',name:'助教·道哥',content:'莹领先锋队李晨（首席执行官）这两天主动拉通各板块、带队友练话术，追问环节进步明显，建议重点培养成小组骨干。',ts:t-3600e3*30},
+  {id:'t2',adminId:'ta2',name:'助教·潘老师',content:'莹定乾坤队刘洋（体能活力官）晚打卡偶尔漏，但日进质量高，私下沟通后已改善，可关注其稳定性与承压表现。',ts:t-3600e3*18}
+];}
+function seedCheckins(){
+  const c={};const t=Date.now();
+  const full=['HS001','HS002','WH001','WH003'];
+  const partial=['HS003','WH002'];
+  const dates=['2026-08-17','2026-08-18','2026-08-19','2026-08-20'];
+  full.forEach(id=>{
+    TRAVEL_NODES.forEach(n=>c[ck(id,TRAVEL_DATE,'travel',n.slot)]=t);
+    dates.forEach(d=>DAILY_SLOTS.forEach(sl=>c[ck(id,d,'daily',sl.slot)]=t));
+  });
+  partial.forEach(id=>{
+    TRAVEL_NODES.slice(0,3).forEach(n=>c[ck(id,TRAVEL_DATE,'travel',n.slot)]=t);
+    dates.slice(0,2).forEach(d=>{c[ck(id,d,'daily','morning')]=t;c[ck(id,d,'daily','noon')]=t;});
+  });
+  ['HS004'].forEach(id=>{
+    TRAVEL_NODES.forEach(n=>c[ck(id,TRAVEL_DATE,'travel',n.slot)]=t);
+    dates.slice(0,1).forEach(d=>DAILY_SLOTS.forEach(sl=>c[ck(id,d,'daily',sl.slot)]=t));
+  });
+  return c;
+}
+function seedPK(){const t=Date.now();return [
+  {id:'p1',studentId:'HS001',type:'individual',result:'win',date:'2026-08-17',content:'今日个人PK：和陈曦做成长对练，开场紧张后稳住节奏，收尾还偏急，瑞姐说节奏要再稳。',ts:t-3600e3*50,feedback:'节奏感不错，下次带队友把收尾练稳。',feedbackTs:t-3600e3*40},
+  {id:'p2',studentId:'HS001',type:'individual',result:'win',date:'2026-08-18',content:'今日个人PK：带小组做成长对练，发现张昊在收尾环节弱，单独陪练了半小时。',ts:t-3600e3*30,feedback:'带教意识很好，记一笔人才。',feedbackTs:t-3600e3*20},
+  {id:'p3',studentId:'HS001',type:'team',result:'win',date:'2026-08-17',content:'今日团队PK：莹领先锋队在成长对练环节配合默契，张昊顶住压力反超，最终拿下小组第一。',ts:t-3600e3*49,feedback:'团队势能不错，复盘要沉淀打法。',feedbackTs:t-3600e3*39},
+  {id:'p4',studentId:'WH001',type:'team',result:'win',date:'2026-08-17',content:'今日团队PK：作为首席执行官带莹定乾坤队出战，早间气势拉满，但晚段被反扑，提醒大家收尾要稳。',ts:t-3600e3*48,feedback:'节奏感不错，晚段问题要立规矩。',feedbackTs:t-3600e3*38},
+  {id:'p5',studentId:'WH001',type:'individual',result:'lose',date:'2026-08-18',content:'今日个人PK：和孙磊做成长对练，开场亮点足，但被反问时露怯，需补应变训练。',ts:t-3600e3*28,feedback:'',feedbackTs:0},
+  {id:'p6',studentId:'HS002',type:'individual',result:'win',date:'2026-08-18',content:'今日个人PK：人事板块成长对练，做了成员状态摸排，凝聚力有提升。',ts:t-3600e3*27,feedback:'',feedbackTs:0},
+  {id:'p7',studentId:'WH002',type:'team',result:'win',date:'2026-08-19',content:'今日团队PK：体能板块带大家做了热身，状态都回来了，后半程追分成功。',ts:t-3600e3*10,feedback:'',feedbackTs:0}
+];}
+function seedDaily(){const t=Date.now();
+  const raw=[
+    {id:'d1',studentId:'HS001',position:'首席执行官',date:'2026-08-19',
+     content:'【知·系统班学习成长】今天对系统班"先认知刷新、再刻意练习"的闭环更通透了：核心是先拉通节奏、再责任到人。\n【行·实践运用】① 晨会定节奏 ② 拉通财务与人事 ③ 树立标杆学员李晨\n【果·成长产出】因为我的推动，团队早打卡全勤，张昊状态被激活，反馈说更有方向了。\n【知行合一自检】知道要授权但今天还是自己扛了太多，因为怕出错。明天要放手。\n【明日】只做1件事：把晚打卡规矩立起来。'},
+    {id:'d2',studentId:'WH001',position:'首席执行官',date:'2026-08-18',
+     content:'【知·系统班学习成长】今天明白在系统班里影响力比权力更重要。\n【行·实践运用】① 定标杆 ② 拉通 ③ 激励\n【果·成长产出】团队凝聚力提升，有人说更有奔头。\n【知行合一自检】知道要早收尾但没做到，晚上拖了。\n【明日】提前半小时收尾。'},
+    {id:'d3',studentId:'HS002',position:'首席人事官',date:'2026-08-18',
+     content:'【知·系统班学习成长】今天学到"识人要先看状态再分任务"。\n【行·实践运用】① 摸排状态 ② 一对一 ③ 建梯队\n【果·成长产出】因为我的沟通，两名成员更愿意开口了。\n【知行合一自检】知道要持续但今天只做了一次。\n【明日】做 daily check-in。'}
+  ];
+  return raw.map(r=>{const {score,grade}=rateReview(r.content,r.position);return {...r,score,grade,ts:t};});
+}
+function seedDuty(){const t=Date.now();return [
+  {id:'du1',studentId:'HS001',position:'首席执行官',date:'2026-08-19',
+   content:'作为首席执行官，今天晨会带头定了全天节奏，拉通了财务与人事两个板块的分工，并把李晨树为标杆带动全员；晚段发现收尾偏松，已立规矩。',ts:t},
+  {id:'du2',studentId:'WH001',position:'首席执行官',date:'2026-08-18',
+   content:'作为首席执行官，今天带莹定乾坤队打团队PK，早间拉满气势、明确分工，但晚段被反扑，已提醒全员收尾要稳。',ts:t},
+  {id:'du3',studentId:'HS002',position:'首席人事官',date:'2026-08-18',
+   content:'作为首席人事官，今天做了成员状态摸排，对两名状态低迷的同学一对一沟通，凝聚了小队士气。',ts:t}
+];}
+function freshDB(){return {
+  students:[
+    {id:'ta1',name:'秀红',team:'',position:'特聘战略顾问',picked:false,pickNote:'',isTa:true},
+    {id:'ta2',name:'文宇',team:'',position:'特聘战略顾问',picked:false,pickNote:'',isTa:true},
+    {id:'ta3',name:'鸿芬',team:'',position:'特聘战略顾问',picked:false,pickNote:'',isTa:true}
+  ],
+  checkins:{},
+  pk:[],
+  talent:[],
+  daily:[],
+  duty:[],
+  tasks:{}
+};}
+async function ensureStruct(){
+  if(!DB){DB=freshDB();await saveDB();return;}
+  if(!DB.checkins)DB.checkins={};
+  if(!DB.pk)DB.pk=[];
+  if(!DB.talent)DB.talent=[];
+  if(!DB.daily)DB.daily=[];
+  if(!DB.duty)DB.duty=[];
+  if(!DB.tasks)DB.tasks={};
+  if(DB.tasksVer!=='v2'){DB.tasks={};DB.tasksVer='v2';}
+  if(!DB.students||!DB.students.length)DB.students=freshDB().students;
+  DB.students.forEach(s=>{if(s.picked===undefined)s.picked=false;if(s.pickNote===undefined)s.pickNote='';if(s.isTa===undefined)s.isTa=false;});
+  await saveDB();
+}
+
+/* ---------- 工具函数 ---------- */
+function ck(studentId,date,kind,slot){return studentId+'|'+date+'|'+kind+'|'+slot}
+function isDone(k){return !!DB.checkins[k]}
+function toggleCheckin(studentId,date,kind,slot){
+  const k=ck(studentId,date,kind,slot);
+  if(DB.checkins[k])delete DB.checkins[k];else DB.checkins[k]=Date.now();
+  saveDB();render();
+}
+function addPK(studentId,type,result,date,content){
+  DB.pk.unshift({id:'p'+Date.now(),studentId,type,result:result||'draw',date,content,ts:Date.now(),feedback:'',feedbackTs:0});
+  saveDB();render();
+}
+function saveFeedback(pkId,fb){
+  const p=DB.pk.find(x=>x.id===pkId);if(!p)return;
+  p.feedback=fb;p.feedbackTs=fb.trim()?Date.now():0;saveDB();render();
+}
+function addTalent(adminId,name,content){
+  DB.talent.unshift({id:'t'+Date.now(),adminId,name,content,ts:Date.now()});saveDB();render();
+}
+function fmtTime(ts){if(!ts)return'';const d=new Date(ts);const p=n=>(''+n).padStart(2,'0');
+  return p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+function fmtDate(d){const p=n=>(''+n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function teams(){return TEAMS.map(t=>t.name)}
+function teamCall(t){const x=TEAMS.find(z=>z.name===t);return x?x.call:''}
+function studentsInTeam(t){return t==='all'?DB.students:DB.students.filter(s=>s.team===t)}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function dayNumber(dateStr){const base=new Date(TRAVEL_DATE);const d=new Date(dateStr);return Math.max(1,Math.round((d-base)/86400000)+1);}
+function streakDays(id,dateStr){let c=0;let d=new Date(dateStr);let guard=0;
+  while(guard++<400){const ds=fmtDate(d);if(DAILY_SLOTS.every(sl=>isDone(ck(id,ds,'daily',sl.slot)))){c++;d.setDate(d.getDate()-1);}else break;}
+  return c;}
+
+/* ---------- 人才评估：徳才岗 + 知行果合一 ---------- */
+function talentScores(s){
+  const repNodes=TRAVEL_NODES.filter(n=>isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot))).length;
+  const repRate=repNodes/TRAVEL_NODES.length;
+  const dailyKeys=Object.keys(DB.checkins).filter(k=>k.startsWith(s.id+'|')&&k.split('|')[2]==='daily');
+  let de=repRate*0.5;
+  if(dailyKeys.length){
+    const dates=new Set(dailyKeys.map(k=>k.split('|')[1]));
+    de+=(dailyKeys.length/(dates.size*DAILY_SLOTS.length))*0.5;
+  }
+  const de_score=Math.round(de*100);
+  const dailyList=DB.daily.filter(p=>p.studentId===s.id);
+  const dailyScore=dailyList.length?Math.min(50,dailyList.length*12.5):0;
+  const avgDaily=dailyList.length?dailyList.reduce((a,r)=>a+r.score,0)/dailyList.length:0;
+  const dailyQuality=dailyList.length?Math.min(50,avgDaily*0.5):0;
+  const cai_score=Math.round(dailyScore+dailyQuality);
+  let gang_score=0;
+  if(s.position){
+    const dutyList=DB.duty.filter(r=>r.studentId===s.id);
+    if(dutyList.length){
+      gang_score=Math.round(dutyList.reduce((a,r)=>{
+        const kws=DEEP_KW[s.position]||[];const hits=kws.filter(kw=>r.content.includes(kw)).length;
+        return a+Math.min(hits*6,30);
+      },0)/dutyList.length/30*100);
+    }
+  }
+  const zhixing_score=dailyList.length?Math.round(avgDaily):0;
+  const decai=Math.round((de_score+cai_score+gang_score)/3);
+  const composite=Math.round(decai*0.5+zhixing_score*0.5);
+  const hiD=decai>=60, hiZ=zhixing_score>=60;
+  let type;
+  if(hiD&&hiZ)type='🌟 标杆型';
+  else if(hiD&&!hiZ)type='🚀 潜力型（执行强·反思浅）';
+  else if(!hiD&&hiZ)type='🔥 慧眼型（悟性高·执行弱）';
+  else type='🌱 待激活型';
+  return {de_score,cai_score,gang_score,zhixing_score,decai,composite,type};
+}
+
+/* ---------- 登录 / 会话 ---------- */
+function logout(){SESSION={role:null};saveSession();render()}
+function loginStudent(id){
+  id=(id||'').trim();
+  const s=DB.students.find(x=>x.id===id)||DB.students.find(x=>x.id===id.toUpperCase());
+  if(!s){alert('未找到该学生ID，请核对或联系管理员添加');return;}
+  if(s.isTa){alert('助教请从管理员端登录（账号 ta1/ta001 等）');return;}
+  SESSION={role:'student',studentId:s.id};saveSession();render();
+}
+function loginAdmin(id,pwd){
+  id=(id||'').trim();pwd=(pwd||'').trim();
+  const a=ADMINS.find(x=>x.id===id&&x.pwd===pwd);
+  if(!a){alert('管理员账号或口令错误');return;}
+  SESSION={role:a.type,adminId:a.id,adminName:a.name,adminType:a.type};saveSession();render();
+}
+
+/* ---------- 视图状态 ---------- */
+const S={studentTab:'checkin',adminTab:'overview',adminViewMode:'admin',planDate:'',
+  dailyDate:'2026-08-17',pkDate:'2026-08-17',coachDate:'2026-08-17',coachPkDate:'all',coachPkType:'all',coachTeam:'all',
+  scoutTeam:'all',scoutType:'all',scoutMin:0,
+  lbTab:'personal',lbDate:'all'};
+function switchStudentTab(t){S.studentTab=t;render()}
+function switchAdminTab(t){S.adminTab=t;render()}
+
+/* ---------- 今日核心动作（来自8.8小组系统班行动计划表，已排除融入面板的动作） ---------- */
+const TA_COMMON=['早：发早安表情包、拍照传递到达、发日精进模板让学生提前写','晨会：找场地做运动，带学生定当日PK目标(上场/举手/认识加v)','上课：关注学生状态；PPT拍摄+总结发教练(上午鸿芬/下午秀红/晚上文宇)','课间：带学生认识当日上台标杆、Check收获','午饭：Check收获30s、提醒写50%日精进','午休：群里统计汇报到勤','晚饭：Check收获、跟进教练点拨','作业指导：带完成作业、梦想板/演讲指导(助教先看)','夕会：回流收获、PK兑现、邀请标杆午饭','日报：同频次日晨会时间/场地/分享内容'];
+const PLAN_DATA={
+ '2026-08-16':{coach:['一对一见面，建立信赖感','大场见面会：竞选岗位(总经理/财务/人事)，同频成败成长','夕会成长点拨','日报：向姐复盘并同频次日'],ta:['按分配名单追踪学员到勤，保安全及时回拨','提前设计队名队呼','集合小组会议：立调性、制定公约、传递标准(注意力=事实/结果最好/成长最大/保持准时/靠近贵人)','观察组内学员积极性与领导力','夕会：成员PK金汇总给财务','日报：同频次日晨会时间/场地/分享内容']},
+ '2026-08-17':{coach:['铺垫目标梦想板(道哥·白手起家极度自律)','午饭/晚饭赋能点拨','梦想板一咨(助教先看)','夕会成长点拨','日报：向姐复盘并同频次日'],ta:TA_COMMON},
+ '2026-08-18':{coach:['铺垫目标(鹏程哥·靠近贵人三起三落)','梦想板一咨100%','AI优化演讲稿示范','午饭/晚饭点拨','日报'],ta:TA_COMMON.concat(['带认识复训标杆姚悦/瑞龙(提前了解组号)'])},
+ '2026-08-19':{coach:['铺垫演讲板块','演讲二咨(助教先看)','通过故事找好苗子','午饭/晚饭点拨','日报'],ta:TA_COMMON},
+ '2026-08-20':{coach:['铺垫销售板块(潘老师·发传单五年升总裁)','演讲二咨40-100%','午饭/晚饭点拨','日报'],ta:TA_COMMON.concat(['带完成销售作业'])},
+ '2026-08-21':{coach:['铺垫职场力板块','午饭初筛人才画像','演讲练习指导','日报'],ta:TA_COMMON.concat(['通知面试(公众号查时间地点)'])},
+ '2026-08-22':{coach:['演讲比赛组织','年会带拍照','日报'],ta:TA_COMMON.concat(['提前找团队拍照姿势发群','通知年会集合时间地点'])},
+ '2026-08-23':{coach:['铁军营关注学生状态','返程汇报到勤保安全'],ta:['PPT拍摄+总结发教练','返程：汇报学员到勤保安全到校']}
+};
+function planDates(){return Object.keys(PLAN_DATA).sort();}
+function autoPlanDate(){const today=fmtDate(new Date());if(PLAN_DATA[today])return today;const all=planDates();return all[0];}
+function getDayTasks(date){
+  if(!DB.tasks)DB.tasks={};
+  if(!DB.tasks[date]){
+    const p=PLAN_DATA[date]||{coach:[],ta:[]};
+    const arr=[];
+    p.coach.forEach((t,i)=>arr.push({id:date+'_c'+i,text:t,doneBy:{},owner:'coach'}));
+    p.ta.forEach((t,i)=>arr.push({id:date+'_t'+i,text:t,doneBy:{},owner:'ta'}));
+    DB.tasks[date]=arr;saveDB();
+  }
+  return DB.tasks[date];
+}
+function taskOwnerKey(){return SESSION.adminType==='ta'?SESSION.adminId:'coach';}
+async function toggleTask(id){const d=S.planDate||autoPlanDate();const t=getDayTasks(d).find(x=>x.id===id);if(t){const k=taskOwnerKey();t.doneBy=t.doneBy||{};t.doneBy[k]=!t.doneBy[k];const ok=await saveDB();if(!ok){t.doneBy[k]=!t.doneBy[k];}render();}}
+function saveTaskText(id,text){const d=S.planDate||autoPlanDate();const t=getDayTasks(d).find(x=>x.id===id);if(t){t.text=(text||'').trim();saveDB();}}
+
+/* ---------- 导出 CSV（带时间戳） ---------- */
+function exportCSV(){
+  const rows=[['ID','姓名','小队','职务','报到节点','早','中','晚','PK数','胜','负','平','日精进数','岗位反馈数','日精进均分','综合分','类型','是否苗子']];
+  DB.students.forEach(s=>{
+    const rep=TRAVEL_NODES.filter(n=>isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot))).length;
+    const m=isDone(ck(s.id,S.coachDate,'daily','morning'))?'✓':'';
+    const n=isDone(ck(s.id,S.coachDate,'daily','noon'))?'✓':'';
+    const e=isDone(ck(s.id,S.coachDate,'daily','evening'))?'✓':'';
+    const pk=DB.pk.filter(p=>p.studentId===s.id);
+    const win=pk.filter(p=>p.result==='win').length, lose=pk.filter(p=>p.result==='lose').length, draw=pk.filter(p=>p.result==='draw').length;
+    const dl=DB.daily.filter(r=>r.studentId===s.id);
+    const du=DB.duty.filter(r=>r.studentId===s.id);
+    const sc=talentScores(s);
+    rows.push([s.id,s.name,s.team,s.position||'',rep,m,n,e,pk.length,win,lose,draw,dl.length,du.length,dl.length?Math.round(dl.reduce((a,r)=>a+r.score,0)/dl.length):0,sc.composite,sc.type,s.picked?'是':'']);
+  });
+  const csv='\ufeff'+rows.map(r=>r.map(c=>'"'+(c==null?'':c)+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date();const p=n=>(''+n).padStart(2,'0');
+  a.download='系统班人才数据_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'.csv';
+  a.click();
+}
+
+/* ---------- 渲染入口 ---------- */
+function studentMe(){
+  if(SESSION.role==='student')return DB.students.find(s=>s.id===SESSION.studentId);
+  const a=ADMINS.find(x=>x.id===SESSION.adminId);
+  if(!a)return null;
+  return {id:a.id,name:a.name.replace('助教·',''),team:SESSION.taTeam||'',position:a.position||'特聘战略顾问',isTa:true};
+}
+async function setTaTeam(team){SESSION.taTeam=team;const s=DB.students.find(x=>x.id===SESSION.adminId);if(s)s.team=team;saveSession();const ok=await saveDB();if(!ok){alert('网络不稳定，小队切换失败，请重试');}render();}
+function render(){
+  const root=document.getElementById('root');
+  if(!SESSION.role){root.innerHTML=renderLogin();return;}
+  if(SESSION.role==='student'){root.innerHTML=renderStudent(studentMe(),false);return;}
+  if(SESSION.adminType==='ta'&&S.adminViewMode==='student'){root.innerHTML=renderStudent(studentMe(),true);return;}
+  root.innerHTML=renderAdmin();
+}
+
+/* ---------- 登录页 ---------- */
+function renderLogin(){
+  const acctHtml=ADMINS.map(a=>`${a.id}/${a.pwd}${a.type==='coach'?'（教练）':'（助教）'}`).join(' · ');
+  return `
+    <div class="login-wrap">
+      <div class="login-hero">
+        <div class="lh-logo">🌸</div>
+        <h1>系统班 · 打卡 &amp; PK 工作台</h1>
+        <p>德才岗 · 知行果 人才画像 ｜ 吸引打卡 · 每日PK · 数字化管理</p>
+      </div>
+      <div class="login-cards">
+        <div class="login-card">
+          <div class="lc-ic">👩‍🎓</div>
+          <h3>学生端</h3>
+          <p>输入学生ID进入，仅本人数据 + 本小队信息</p>
+          <input type="text" id="stuId" placeholder="学生ID（如 HS001）" style="text-transform:uppercase"/>
+          <button class="btn" onclick="loginStudent(document.getElementById('stuId').value)">进入学生端</button>
+        </div>
+        <div class="login-card">
+          <div class="lc-ic">🧑‍🏫</div>
+          <h3>管理员端</h3>
+          <p>账号 + 口令进入（1教练 + 3助教）</p>
+          <input type="text" id="admId" placeholder="账号（如 coach）"/>
+          <input type="text" id="admPwd" placeholder="口令" style="margin-top:8px"/>
+          <button class="btn ghost" onclick="loginAdmin(document.getElementById('admId').value,document.getElementById('admPwd').value)">进入管理员端</button>
+          <div class="acct-list">账号：${acctHtml}</div>
+        </div>
+      </div>
+      <div class="login-note">🔐 两类身份相互独立、互不可见：学生看不到教练/助教反馈；管理员看全部后台。</div>
+    </div>`;
+}
+
+/* ---------- 学生端 ---------- */
+function stuTaskProgress(me){
+  let done=0;
+  if(TRAVEL_NODES.every(n=>isDone(ck(me.id,TRAVEL_DATE,'travel',n.slot))))done++;
+  DAILY_SLOTS.forEach(sl=>{if(isDone(ck(me.id,S.dailyDate,'daily',sl.slot)))done++;});
+  if(DB.daily.some(r=>r.studentId===me.id&&r.date===S.dailyDate))done++;
+  if(DB.duty.some(r=>r.studentId===me.id&&r.date===S.dailyDate))done++;
+  return {done,total:6};
+}
+function stuBanner(me,isTa){
+  const dayNum=dayNumber(S.dailyDate);
+  const task=stuTaskProgress(me);
+  const streak=streakDays(me.id,S.dailyDate);
+  const online=task.done>=5;
+  return `<div class="stu-banner">
+    <div class="sb-top">
+      <div class="sb-avatar">${animalFor(me.id)}</div>
+      <div class="sb-hi" style="flex:1">
+        <div class="sb-name">嗨，${me.name}~</div>
+        <div class="sb-sub">今天是系统班第 ${dayNum} 天 · 你已完成 ${task.done}/${task.total} 项今日任务</div>
+      </div>
+      ${isTa?'<button class="btn-exit" onclick="S.adminViewMode=\'admin\';render()">返回管理后台</button>':'<button class="btn-exit" onclick="logout()">退出</button>'}
+    </div>
+    <div class="stu-stats">
+      <div class="stu-stat"><b>🔥 ${streak}</b><span>连续全勤(天)</span></div>
+      <div class="stu-stat"><b>${task.done}/${task.total}</b><span>今日完成</span></div>
+      <div class="stu-stat"><b>${online?'🟢 在线':'⚪ 待激活'}</b><span>状态</span></div>
+    </div>
+  </div>`;
+}
+function stuTabbar(){
+  const tabs=[['checkin','📍','打卡'],['team','👥','小队'],['pk','🌙','每日PK'],['review','📖','日精进'],['lb','🏆','PK榜']];
+  return `<nav class="stu-tabbar">${tabs.map(t=>`<div class="tab-item ${S.studentTab===t[0]?'on':''}" onclick="switchStudentTab('${t[0]}')"><span class="ti-ic">${t[1]}</span><span class="ti-lb">${t[2]}</span></div>`).join('')}</nav>`;
+}
+function renderStudent(me,isTa){
+  me=me||DB.students.find(s=>s.id===SESSION.studentId);
+  let content;
+  if(S.studentTab==='checkin')content=studentCheckin(me);
+  else if(S.studentTab==='team')content=studentTeam(me);
+  else if(S.studentTab==='pk')content=studentPK(me);
+  else if(S.studentTab==='review')content=studentReview(me);
+  else content=studentLeaderboard();
+  return `<div class="stu-layout">
+    ${stuBanner(me,isTa)}
+    <div class="stu-content">${content}</div>
+    ${stuTabbar()}
+  </div>`;
+}
+function studentCheckin(me){
+  const travelDone=TRAVEL_NODES.filter(n=>isDone(ck(me.id,TRAVEL_DATE,'travel',n.slot))).length;
+  const travelGrid=`<div class="checkin-grid">
+    ${TRAVEL_NODES.map(n=>{const k=ck(me.id,TRAVEL_DATE,'travel',n.slot);const done=isDone(k);return `
+      <div class="checkin-cell ${done?'done':''}" onclick="toggleCheckin('${me.id}','${TRAVEL_DATE}','travel','${n.slot}')">
+        <div class="cc-ic">${n.icon}</div>
+        <div class="cc-lb">${n.label}</div>
+        <div class="cc-st">${done?('✓ '+fmtTime(DB.checkins[k]).slice(6)):'待完成'}</div>
+      </div>`}).join('')}
+  </div>`;
+  const dailyDone=DAILY_SLOTS.filter(s=>isDone(ck(me.id,S.dailyDate,'daily',s.slot))).length;
+  const dayRow=`<div class="day-row">
+    ${DAILY_SLOTS.map(s=>{const k=ck(me.id,S.dailyDate,'daily',s.slot);const done=isDone(k);return `
+      <div class="day-cell ${done?'done':''}" onclick="toggleCheckin('${me.id}','${S.dailyDate}','daily','${s.slot}')">
+        <span class="dc-ic">${s.icon}</span><span class="dc-lb">${s.label}</span>
+        <span class="dc-st">${done?'✓':'○'}</span>
+      </div>`}).join('')}
+  </div>`;
+  return `
+    <div class="card">
+      <div class="date-row"><span class="pill">📅 ${S.dailyDate}</span>
+        <input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto" /></div>
+      <h2>🚩 报到日 · 8月16日行程</h2>
+      <p class="desc">${me.team} · 按节点完成报到，抵达即打卡。完成全部 4 项视为报到成功（${travelDone}/4）。</p>
+      ${travelGrid}
+    </div>
+    <div class="card">
+      <h2>🗓️ 每日行程打卡（8月17日起）</h2>
+      <p class="desc">每日早 / 中 / 晚三次行程打卡（${dailyDone}/3 已完成）。</p>
+      ${dayRow}
+    </div>
+    <div class="card tip-card">
+      <div class="tip-ic">💡</div>
+      <div>每天 21:00 前完成 <b>打卡 + 日精进 + 岗位反馈</b>，保持状态在线🔥</div>
+    </div>`;
+}
+function studentTeam(me){
+  if(!me.team){
+    return `<div class="card">
+      <h2>👥 我的小队</h2>
+      <div class="empty">${me.isTa?'你还未选择我的小队，请点右上角「返回管理后台」，在顶部「选择我的小队」里选一支队伍。':'暂未分配小队，请联系管理员。'}</div>
+    </div>`;
+  }
+  const mates=DB.students.filter(s=>s.team===me.team);
+  const postSummary=POSITIONS.map(pos=>({pos,holders:mates.filter(s=>s.position===pos)})).filter(x=>x.holders.length);
+  const postsHtml=postSummary.length
+    ? postSummary.map(x=>`<div class="post-row"><span class="pos">${x.pos}</span><span class="holders">${x.holders.map(h=>h.name).join('、')}</span></div>`).join('')
+    : '<div class="empty">本小队暂未设置岗位管理者，请联系管理员分配。</div>';
+  const roster=mates.map(s=>`<div class="mate-row">
+    <div class="avatar">${animalFor(s.id)}</div>
+    <div class="nm">${s.name}${s.id===me.id?' <span class="pill">我</span>':''}${s.isTa?' <span class="pill" style="background:#FFE5A0;color:#8a6d00">助教</span>':''}<small>${s.team}${s.position?' · '+s.position:''}</small></div>
+    <span class="pos-badge ${s.position?'on':''}">${s.position||'成员'}</span>
+  </div>`).join('');
+  return `
+    <div class="card">
+      <h2>👥 我的小队 · ${me.team}</h2>
+      <p class="desc">这里只展示本小队成员与职务，<b>看不到他人的打卡 / PK / 日精进明细</b>。</p>
+      <div class="callout">📣 队呼：${teamCall(me.team)}</div>
+      <div class="sec-title">🏅 各岗位管理者（本板块负责人）</div>
+      ${postsHtml}
+      <div class="sec-title">📋 成员名单（${mates.length}人）</div>
+      ${roster}
+    </div>`;
+}
+function studentPK(me){
+  return `
+    <div class="callout">🌙 今日PK提醒：完成「晚」行程打卡后，提交今日的 <b>团队PK</b> 与 <b>个人PK</b>（系统班成长PK，非招生话术）。记得选上胜负结果。</div>
+    <div class="card">
+      <h2>🏆 今日团队PK</h2>
+      <p class="desc">提交本小队今日团队PK：整体配合、胜负、亮点。</p>
+      <div class="date-row"><input type="date" value="${S.pkDate}" onchange="S.pkDate=this.value;render()" style="width:auto"/></div>
+      <textarea id="teamPkContent" rows="4" placeholder="今日团队PK：本队整体配合如何、胜负结果、亮点与不足……"></textarea>
+      <div class="result-row" id="teamPkResult">
+        <button type="button" onclick="pickResult('teamPkResult','win',this)">✅ 胜</button>
+        <button type="button" onclick="pickResult('teamPkResult','lose',this)">❌ 负</button>
+        <button type="button" onclick="pickResult('teamPkResult','draw',this)">➖ 平</button>
+      </div>
+      <button class="btn" onclick="submitTeamPKFromUI()">提交团队PK</button>
+    </div>
+    <div class="card">
+      <h2>🎯 今日个人PK</h2>
+      <p class="desc">提交你今日个人PK：成长对练、结果、卡点与突破。</p>
+      <div class="date-row"><input type="date" value="${S.pkDate}" onchange="S.pkDate=this.value;render()" style="width:auto"/></div>
+      <textarea id="indPkContent" rows="4" placeholder="今日个人PK：你的成长对练表现、结果、卡点与突破……"></textarea>
+      <div class="result-row" id="indPkResult">
+        <button type="button" onclick="pickResult('indPkResult','win',this)">✅ 胜</button>
+        <button type="button" onclick="pickResult('indPkResult','lose',this)">❌ 负</button>
+        <button type="button" onclick="pickResult('indPkResult','draw',this)">➖ 平</button>
+      </div>
+      <button class="btn" onclick="submitIndPKFromUI()">提交个人PK</button>
+    </div>
+    <div class="card">
+      <h2>📋 我的PK记录</h2>
+      ${renderMyPKList(me)}
+    </div>`;
+}
+function pickResult(rowId,val,btn){
+  const row=document.getElementById(rowId);
+  row.querySelectorAll('button').forEach(b=>b.classList.remove('sel-w','sel-l','sel-d'));
+  btn.classList.add(val==='win'?'sel-w':val==='lose'?'sel-l':'sel-d');
+  row.dataset.val=val;
+}
+function getPickedResult(rowId){
+  const row=document.getElementById(rowId);
+  return row&&row.dataset.val?row.dataset.val:'draw';
+}
+function renderMyPKList(me){
+  const list=DB.pk.filter(p=>p.studentId===me.id);
+  if(!list.length)return '<div class="empty">还没有提交过PK，晚饭后去写一条吧～</div>';
+  return list.map(p=>`
+    <div class="pk-item">
+      <div class="hd"><span><b>${p.type==='team'?'🏆 团队PK':'🎯 个人PK'}</b> · ${p.date} · ${fmtTime(p.ts)}</span>
+      <span class="badge ${p.result}">${RESULT_LABEL[p.result]}</span></div>
+      <div class="ct">${esc(p.content)}</div>
+    </div>`).join('');
+}
+function submitTeamPKFromUI(){
+  const v=document.getElementById('teamPkContent').value.trim();
+  if(!v){alert('先写点什么再提交吧～');return;}
+  if(!document.getElementById('teamPkResult').dataset.val){alert('记得选一下胜负结果（胜/负/平）哦～');return;}
+  addPK(SESSION.studentId,'team',getPickedResult('teamPkResult'),S.pkDate,v);
+  S.studentTab='lb';render();
+}
+function submitIndPKFromUI(){
+  const v=document.getElementById('indPkContent').value.trim();
+  if(!v){alert('先写点什么再提交吧～');return;}
+  if(!document.getElementById('indPkResult').dataset.val){alert('记得选一下胜负结果（胜/负/平）哦～');return;}
+  addPK(SESSION.studentId,'individual',getPickedResult('indPkResult'),S.pkDate,v);
+  S.studentTab='lb';render();
+}
+/* 学生端 · 日精进与岗位反馈（两个独立板块，清空白预填） */
+function studentReview(me){
+  const roleLabel=me.position?('本板块负责人 · '+me.position):'团队成员';
+  const myDaily=DB.daily.filter(r=>r.studentId===me.id);
+  const myDuty=DB.duty.filter(r=>r.studentId===me.id);
+  const dailySection=`
+    <div class="card">
+      <h2>📖 今日日精进</h2>
+      <p class="desc">自由书写 · 来自系统班学习成长的真实复盘</p>
+      <div class="guide-card">
+        <div class="guide-hi">✍️ 写什么都行~</div>
+        <div class="guide-sub">但如果你想拿高分：写出「知·行·果 + 知行合一自检」，系统会自动评知行合一深度哦。</div>
+      </div>
+      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto"/></div>
+      <textarea id="dailyContent" rows="10" placeholder="今天最触动我的一句话是……" oninput="document.getElementById('wcDaily').textContent='已写 '+this.value.length+' 字'"></textarea>
+      <div class="word-count"><span id="wcDaily">已写 0 字</span><span class="muted">（500 字以上评优率更高哦）</span></div>
+      <button class="btn" onclick="submitDailyFromUI()">提交日精进</button>
+      <div class="sec-title">📋 我的日精进记录</div>
+      ${myDaily.length?myDaily.map(r=>`<div class="pk-item"><div class="hd"><span>${r.date} · 日精进</span><span>${fmtTime(r.ts)}</span></div><div class="ct">${esc(r.content)}</div><div class="fb-box"><div class="fl">📊 知行合一 ${r.score}分 · ${r.grade}</div></div></div>`).join(''):'<div class="empty">还没有提交过日精进，去上面写第一条吧～</div>'}
+    </div>`;
+  const dutySection=`
+    <div class="card">
+      <h2>💼 岗位反馈</h2>
+      <p class="desc">作为 <b>${roleLabel}</b>，反馈你履职了什么。${me.position?'':'（暂未分配职务，可写团队贡献与观察。）'}</p>
+      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto"/></div>
+      <textarea id="dutyContent" rows="8" placeholder="${me.position?('作为'+me.position+'，今天我带头/参与做了___、带动了谁、解决了什么问题？'):'作为团队成员，今天我在队伍里承担了什么角色、贡献了什么？'}"></textarea>
+      <button class="btn" onclick="submitDutyFromUI()">提交岗位反馈</button>
+      <div class="sec-title">📋 我的岗位反馈记录</div>
+      ${myDuty.length?myDuty.map(r=>`<div class="pk-item"><div class="hd"><span>${r.date} · 岗位反馈</span><span>${fmtTime(r.ts)}</span></div><div class="ct">${esc(r.content)}</div></div>`).join(''):'<div class="empty">还没有提交过岗位反馈。</div>'}
+    </div>`;
+  return dailySection+dutySection;
+}
+function submitDailyFromUI(){
+  const me=DB.students.find(s=>s.id===SESSION.studentId);
+  const v=document.getElementById('dailyContent').value.trim();
+  if(!v){alert('先写点什么再提交吧～');return;}
+  const {score,grade}=rateReview(v,me.position);
+  DB.daily.unshift({id:'d'+Date.now(),studentId:me.id,position:me.position||'',date:S.dailyDate,content:v,score,grade,ts:Date.now()});
+  saveDB();
+  alert('提交成功！知行合一评分 '+score+'分 · '+grade);
+  render();
+}
+function submitDutyFromUI(){
+  const me=DB.students.find(s=>s.id===SESSION.studentId);
+  const v=document.getElementById('dutyContent').value.trim();
+  if(!v){alert('先写点什么再提交吧～');return;}
+  DB.duty.unshift({id:'du'+Date.now(),studentId:me.id,position:me.position||'',date:S.dailyDate,content:v,ts:Date.now()});
+  saveDB();
+  alert('岗位反馈已提交！');
+  render();
+}
+/* 学员专区 → 每日PK榜（个人/团队双榜，按PK结果排名） */
+function studentLeaderboard(){
+  const tab=S.lbTab||'personal';
+  const dateFilter=S.lbDate||'all';
+  const dateRow=`<div class="date-row" style="margin-bottom:12px">
+    <input type="date" value="${dateFilter==='all'?'':dateFilter}" onchange="S.lbDate=this.value||'all';render()" style="width:auto"/>
+    <button class="btn sm ghost" onclick="S.lbDate='all';render()">全部(累计)</button>
+    <span class="pill">统计日</span>
+  </div>`;
+  const tabRow=`<div class="filter-row">
+    <button class="btn sm ${tab==='personal'?'ghost':''}" onclick="S.lbTab='personal';render()">👤 个人榜</button>
+    <button class="btn sm ${tab==='team'?'ghost':''}" onclick="S.lbTab='team';render()">🏅 团队榜</button>
+  </div>`;
+  let body='';
+  if(tab==='personal'){
+    const rows=DB.students.map(s=>{
+      let list=DB.pk.filter(p=>p.studentId===s.id);
+      if(dateFilter!=='all')list=list.filter(p=>p.date===dateFilter);
+      const win=list.filter(p=>p.result==='win').length;
+      const lose=list.filter(p=>p.result==='lose').length;
+      const draw=list.filter(p=>p.result==='draw').length;
+      return {s,win,lose,draw,total:list.length};
+    }).filter(x=>x.total>0).sort((a,b)=> b.win-a.win || b.total-a.total || a.lose-b.lose);
+    body=rows.length?rows.map((r,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+      const top=i<3?' top'+(i+1):'';
+      return `<div class="rank-row${top}">
+        <div class="rank-medal">${medal}</div>
+        <div class="nm">${r.s.name}${r.s.id===SESSION.studentId?' <span class="pill">我</span>':''}<small>${r.s.team}${r.s.position?' · '+r.s.position:''}</small></div>
+        <div class="rank-score">${r.win} 胜<small>负${r.lose} · 平${r.draw} · 共${r.total}</small></div>
+      </div>`;
+    }).join(''):'<div class="empty">还没有PK数据，去「🌙 每日PK」提交第一条吧～</div>';
+  }else{
+    const rows=TEAMS.map(t=>{
+      const members=new Set(DB.students.filter(s=>s.team===t.name).map(s=>s.id));
+      let list=DB.pk.filter(p=>p.type==='team'&&members.has(p.studentId));
+      if(dateFilter!=='all')list=list.filter(p=>p.date===dateFilter);
+      const win=list.filter(p=>p.result==='win').length;
+      const lose=list.filter(p=>p.result==='lose').length;
+      const draw=list.filter(p=>p.result==='draw').length;
+      return {t,win,lose,draw,total:list.length};
+    }).sort((a,b)=> b.win-a.win || b.total-a.total || a.lose-b.lose);
+    body=rows.map((r,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+      const top=i<3?' top'+(i+1):'';
+      return `<div class="rank-row${top}">
+        <div class="rank-medal">${medal}</div>
+        <div class="nm">${r.t.name}<small>队呼：${teamCall(r.t.name)}</small></div>
+        <div class="rank-score">${r.win} 胜<small>负${r.lose} · 平${r.draw} · 共${r.total}</small></div>
+      </div>`;
+    }).join('');
+  }
+  return `
+    <div class="card">
+      <h2>🏆 每日PK榜</h2>
+      <p class="desc">按 PK 的<b>胜负结果</b>实时排名——个人榜看谁最猛，团队榜看哪队最强。胜场多者靠前，平局比提交数。</p>
+      ${tabRow}
+      ${dateRow}
+      ${body}
+    </div>`;
+}
+
+/* ---------- 管理员端 ---------- */
+const adminNav=[
+  ['overview','📊','今日总览'],
+  ['stu','🧭','学生看板'],
+  ['pk','⚔️','PK战况'],
+  ['submit_daily','📖','日精进'],
+  ['submit_duty','💼','岗位复盘'],
+  ['scout','🔍','人才评级'],
+  ['talent','🧠','人才反馈'],
+  ['mgmt','⚙️','学员管理'],
+  ['export','📤','导出数据']
+];
+function todayLabel(){const d=new Date();const w=['日','一','二','三','四','五','六'][d.getDay()];const p=n=>(''+n).padStart(2,'0');
+  const day=Math.max(1,Math.round((d-new Date(TRAVEL_DATE))/86400000)+1);
+  return `${d.getFullYear()}年${p(d.getMonth()+1)}月${p(d.getDate())}日 周${w} · 系统班 Day ${day}`;}
+function adminTopStats(){
+  const stus=studentsInTeam(S.coachTeam);
+  const full=stus.filter(s=>DAILY_SLOTS.every(sl=>isDone(ck(s.id,S.coachDate,'daily',sl.slot)))).length;
+  const anomaly=stus.filter(s=>!(TRAVEL_NODES.every(n=>isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot)))&&DAILY_SLOTS.every(sl=>isDone(ck(s.id,S.coachDate,'daily',sl.slot))))).length;
+  const seed=stus.filter(s=>talentScores(s).type.includes('标杆')).length;
+  return {full,anomaly,seed};
+}
+function adminTopbar(){
+  const st=adminTopStats();
+  const raw=SESSION.adminName;
+  const mm=raw.match(/（(.+?)）/);
+  const hi=mm?mm[1]:raw.replace('助教·','').replace('主教练·','');
+  return `<div class="admin-topbar">
+    <div class="top-greet">
+      <div class="tg-hi">嗨，${hi}~</div>
+      <div class="tg-sub">今天也要元气满满哦！ · ${todayLabel()}</div>
+    </div>
+    <div class="top-stats">
+      <div class="top-stat"><b>${st.full}</b><span>全勤</span></div>
+      <div class="top-stat warn"><b>${st.anomaly}</b><span>异常</span></div>
+      <div class="top-stat ok"><b>${st.seed}</b><span>A类苗子</span></div>
+    </div>
+    ${SESSION.adminType==='ta'?'<select class="team-sel" onchange="setTaTeam(this.value)" style="width:auto"><option value="">选择我的小队</option>'+teams().map(t=>'<option value="'+t+'" '+(SESSION.taTeam===t?'selected':'')+'>'+t+'</option>').join('')+'</select>':''}
+    ${SESSION.adminType==='ta'?'<button class="btn-exit" onclick="S.adminViewMode=\'student\';S.studentTab=\'checkin\';render()">切换学生视角</button>':''}
+    <button class="btn-exit" onclick="logout()">退出</button>
+  </div>`;
+}
+function adminCoreActions(){
+  if(!S.planDate)S.planDate=autoPlanDate();
+  const d=S.planDate;
+  const myOwner=SESSION.adminType==='ta'?'ta':'coach';
+  const k=taskOwnerKey();
+  const tasks=getDayTasks(d).filter(t=>t.owner===myOwner);
+  const dateRow=`<div class="date-row" style="margin-bottom:10px"><span class="pill">📅 行动日</span><select onchange="S.planDate=this.value;render()" style="width:auto">${planDates().map(dt=>`<option value="${dt}" ${dt===d?'selected':''}>${dt}</option>`).join('')}</select><span class="pill">${myOwner==='coach'?'教练视角':(SESSION.adminName.replace('助教·','')+'视角')}</span></div>`;
+  return `<div class="card core-card">
+    <h2>✨ 今日核心动作 · ${myOwner==='coach'?'教练':SESSION.adminName.replace('助教·','')}</h2>
+    <p class="desc">按行动计划表自动匹配当日（${d}）；动作文字可直接点击编辑，勾选标记完成（各助教完成情况独立）。</p>
+    ${dateRow}
+    ${tasks.length?tasks.map(t=>{const done=t.doneBy&&t.doneBy[k];return `<div class="core-item ${done?'done':''}">
+      <span class="core-box" onclick="toggleTask('${t.id}')">${done?'✓':''}</span>
+      <span class="core-text" contenteditable="true" onblur="saveTaskText('${t.id}',this.textContent)" style="flex:1">${esc(t.text)}</span>
+    </div>`}).join(''):'<div class="empty">该日无动作。</div>'}
+  </div>`;
+}
+function renderAdmin(){
+  const nav=adminNav.map(([k,ic,lb])=>{
+    if(k==='export')return `<div class="sb-item" onclick="exportCSV()"><span class="sb-ic">${ic}</span><span>${lb}</span></div>`;
+    const on=S.adminTab===k?' on':'';
+    return `<div class="sb-item${on}" onclick="switchAdminTab('${k}')"><span class="sb-ic">${ic}</span><span>${lb}</span></div>`;
+  }).join('');
+  let content;
+  if(S.adminTab==='overview')content=adminOverview();
+  else if(S.adminTab==='stu')content=adminStudents();
+  else if(S.adminTab==='pk')content=adminPK();
+  else if(S.adminTab==='submit_daily')content=adminSubmit('daily');
+  else if(S.adminTab==='submit_duty')content=adminSubmit('duty');
+  else if(S.adminTab==='scout')content=adminScout();
+  else if(S.adminTab==='talent')content=adminTalent();
+  else content=adminManage();
+  return `<div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sb-logo">🌸 系统班<br><small>德才岗·知行果</small></div>
+      <div class="sb-nav">${nav}</div>
+      <div class="sb-foot">教练工作台原型</div>
+    </aside>
+    <main class="admin-main">
+      ${adminTopbar()}
+      <div class="admin-content">${content}</div>
+    </main>
+  </div>`;
+}
+function teamFilterRow(){
+  const ts=teams();
+  return `<div class="filter-row">
+    <span class="pill">小队</span>
+    <button class="btn sm ${S.coachTeam==='all'?'ghost':''}" onclick="S.coachTeam='all';render()">全部</button>
+    ${ts.map(t=>`<button class="btn sm ${S.coachTeam===t?'ghost':''}" onclick="S.coachTeam='${t}';render()">${t}</button>`).join('')}
+  </div>`;
+}
+function adminStats(){
+  const stus=studentsInTeam(S.coachTeam);
+  const total=stus.length;
+  const reported=stus.filter(s=>TRAVEL_NODES.every(n=>isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot)))).length;
+  const m=stus.filter(s=>isDone(ck(s.id,S.coachDate,'daily','morning'))).length;
+  const n=stus.filter(s=>isDone(ck(s.id,S.coachDate,'daily','noon'))).length;
+  const e=stus.filter(s=>isDone(ck(s.id,S.coachDate,'daily','evening'))).length;
+  const pkList=DB.pk.filter(p=>{const s=DB.students.find(x=>x.id===p.studentId);return S.coachTeam==='all'||(s&&s.team===S.coachTeam);});
+  const pkToday=pkList.filter(p=>p.date===S.coachDate).length;
+  const pkTotal=pkList.length;
+  const pkTeam=pkList.filter(p=>p.type==='team').length;
+  const pkInd=pkList.filter(p=>p.type==='individual').length;
+  const pending=pkList.filter(p=>!p.feedback).length;
+  const talentCount=DB.talent.length;
+  const pickedCount=DB.students.filter(s=>s.picked).length;
+  const dailyCount=DB.daily.length;
+  const dutyCount=DB.duty.length;
+  return {total,reported,m,n,e,pkToday,pkTotal,pkTeam,pkInd,pending,talentCount,pickedCount,dailyCount,dutyCount};
+}
+function adminOverview(){
+  const s=adminStats();
+  const cards=[
+    {v:s.total,k:'学生总数'},
+    {v:s.reported+'/'+s.total,k:'报到完成',cls:s.reported===s.total?'ok':''},
+    {v:s.m+'/'+s.total,k:'(统计日)早打卡',cls:''},
+    {v:s.n+'/'+s.total,k:'(统计日)中打卡',cls:''},
+    {v:s.e+'/'+s.total,k:'(统计日)晚打卡',cls:''},
+    {v:s.pkToday,k:'今日PK数',cls:''},
+    {v:s.pkTotal,k:'累计PK数',cls:''},
+    {v:s.pkTeam+'/'+s.pkInd,k:'团队PK / 个人PK',cls:''},
+    {v:s.pending,k:'PK待反馈数',cls:s.pending?'warn':'ok'},
+    {v:s.dailyCount,k:'日精进数',cls:''},
+    {v:s.dutyCount,k:'岗位反馈数',cls:''},
+    {v:s.talentCount,k:'人才反馈数',cls:''},
+    {v:s.pickedCount,k:'已选苗子',cls:s.pickedCount?'ok':''}
+  ];
+  return `
+    ${adminCoreActions()}
+    <div class="card">
+      <h2>📊 数据概览</h2>
+      <p class="desc">实时反映所辖小队学生参与情况，可按小队与日期筛选。${SESSION.adminType==='ta'?'（助教视角，与教练同权）':''}</p>
+      ${teamFilterRow()}
+      <div class="date-row" style="margin-bottom:12px">
+        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-17" style="width:auto"/>
+        <span class="pill">统计日</span>
+      </div>
+      <div class="stats">${cards.map(c=>`<div class="stat"><div class="v ${c.cls||''}">${c.v}</div><div class="k">${c.k}</div></div>`).join('')}</div>
+    </div>`;
+}
+function adminStudents(){
+  const legend=`<div class="legend">
+    <span><i style="background:var(--green)"></i>已完成</span>
+    <span><i style="background:var(--pending)"></i>未打卡</span>
+    <span>报到 = 8月16日四节点 · 右侧为 ${S.coachDate} 早/中/晚</span></div>`;
+  const stus=studentsInTeam(S.coachTeam);
+  const rows=stus.map(s=>{
+    const rep=TRAVEL_NODES.filter(n=>isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot))).length;
+    const repDots=TRAVEL_NODES.map(n=>`<span class="dot ${isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot))?'on':'off'}">${isDone(ck(s.id,TRAVEL_DATE,'travel',n.slot))?'✓':''}</span>`).join('');
+    const dayDots=DAILY_SLOTS.map(sl=>`<span class="dot ${isDone(ck(s.id,S.coachDate,'daily',sl.slot))?'on':'off'}">${isDone(ck(s.id,S.coachDate,'daily',sl.slot))?'✓':''}</span>`).join('');
+    return `<div class="stu-row">
+      <div class="avatar">${animalFor(s.id)}</div>
+      <div class="nm">${s.name}${s.picked?' <span class="pill">⭐苗子</span>':''}<small>${s.team}${s.position?' · '+s.position:''} · 报到 ${rep}/4</small></div>
+      <div class="dots" title="报到节点">${repDots}</div>
+      <div class="dots" title="早中晚">${dayDots}</div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="card">
+      <h2>🧭 学生打卡看板</h2>
+      <p class="desc">逐人、逐节点掌握打卡状态，可见各岗位管理者。可按小队筛选。</p>
+      ${teamFilterRow()}
+      <div class="date-row" style="margin-bottom:6px">
+        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-17" style="width:auto"/>
+        <span class="pill">查看日</span>
+      </div>
+      ${legend}
+      ${rows||'<div class="empty">该小队暂无学生。</div>'}
+    </div>`;
+}
+function adminPK(){
+  let list=DB.pk.slice();
+  if(S.coachTeam!=='all'){const set=new Set(studentsInTeam(S.coachTeam).map(s=>s.id));list=list.filter(p=>set.has(p.studentId));}
+  if(S.coachPkDate!=='all')list=list.filter(p=>p.date===S.coachPkDate);
+  if(S.coachPkType!=='all')list=list.filter(p=>p.type===S.coachPkType);
+  const filter=`<div class="filter-row">
+    <span class="pill">小队</span>
+    <button class="btn sm ${S.coachTeam==='all'?'ghost':''}" onclick="S.coachTeam='all';render()">全部</button>
+    ${teams().map(t=>`<button class="btn sm ${S.coachTeam===t?'ghost':''}" onclick="S.coachTeam='${t}';render()">${t}</button>`).join('')}
+  </div>
+  <div class="filter-row type">
+    <span class="pill">类型</span>
+    <button class="btn sm ${S.coachPkType==='all'?'ghost':''}" onclick="S.coachPkType='all';render()">全部</button>
+    <button class="btn sm ${S.coachPkType==='team'?'ghost':''}" onclick="S.coachPkType='team';render()">🏆 团队PK</button>
+    <button class="btn sm ${S.coachPkType==='individual'?'ghost':''}" onclick="S.coachPkType='individual';render()">🎯 个人PK</button>
+  </div>
+  <div class="date-row" style="margin:6px 0 10px">
+    <input type="date" value="${S.coachPkDate==='all'?'':S.coachPkDate}" onchange="S.coachPkDate=this.value||'all';render()" style="width:auto"/>
+    <button class="btn sm ghost" onclick="S.coachPkDate='all';render()">全部</button>
+    <span class="pill">筛选日</span>
+  </div>`;
+  const cards=list.length?list.map(p=>{
+    const st=DB.students.find(s=>s.id===p.studentId);
+    const pending=!p.feedback;
+    return `<div class="pk-review">
+      <div class="hd">
+        <div><b>${st?st.name:'(未知)'}</b> <small style="color:var(--sub)">${st?st.team:''}${st&&st.position?' · '+st.position:''} · ${p.date} ${fmtTime(p.ts)}</small></div>
+        <span style="display:flex;gap:6px">
+          <span class="badge ${p.type==='team'?'team':'ind'}">${p.type==='team'?'🏆 团队PK':'🎯 个人PK'}</span>
+          <span class="badge ${p.result}">${RESULT_LABEL[p.result]}</span>
+        </span>
+      </div>
+      <div class="ct" style="font-size:14px;white-space:pre-wrap;word-break:break-word">${esc(p.content)}</div>
+      <textarea id="fb_${p.id}" rows="2" placeholder="写下你的实时反馈……" style="margin-top:10px">${esc(p.feedback)}</textarea>
+      <button class="btn sm" style="margin-top:8px" onclick="saveFeedback('${p.id}',document.getElementById('fb_${p.id}').value)">保存反馈</button>
+    </div>`;
+  }).join(''):'<div class="empty">该筛选条件下暂无PK提交。</div>';
+  return `
+    <div class="card">
+      <h2>⚔️ 每日PK 审核与反馈</h2>
+      <p class="desc">查看学生每日提交的团队PK / 个人PK（含胜负结果），逐条写实时反馈并保存。<b>学生端看不到这些反馈</b>，仅管理员可见。</p>
+      ${filter}
+      ${cards}
+    </div>`;
+}
+function adminManage(){
+  const ts=teams();
+  const listHtml=ts.map(t=>{
+    const stus=DB.students.filter(s=>s.team===t&&!s.isTa);
+    return `<div class="team-group">
+      <div class="cg-title"><span>🏅 ${t}</span><span class="pill">${stus.length}人</span></div>
+      ${stus.map(s=>{const pd=pendingDelete===s.id;return `<div class="mgmt-row">
+        <span class="id">${s.id}</span>
+        <span class="nm">${s.name}${s.picked?' <span class="pill">⭐苗子</span>':''}<small>${s.position||'成员'}</small></span>
+        ${pd?'<button class="btn sm danger" onclick="deleteStudent(\''+s.id+'\')">再点确认删除</button><button class="btn sm ghost" onclick="cancelDelete()">取消</button>':'<button class="btn sm danger" onclick="askDelete(\''+s.id+'\')">删除</button>'}
+      </div>`}).join('')}
+    </div>`;
+  }).join('');
+  const posOptions=POSITIONS.map(p=>`<option value="${p}">${p}</option>`).join('');
+  return `
+    <div class="card">
+      <h2>⚙️ 学员管理（小队 + 职务）</h2>
+      <p class="desc">按小队设置学生ID与 9 类职务；有职务即视为该板块负责人，可在学生端提交岗位反馈。ID 全局唯一，建议带小队前缀（如 HS001 / WH001）。</p>
+      <div class="card" style="background:var(--brand-soft);box-shadow:none;margin-bottom:12px">
+        <div class="sec-title" style="margin-top:0">＋ 新增学生</div>
+        <div class="date-row">
+          <input type="text" id="nid" placeholder="学生ID（如 HS006）" style="text-transform:uppercase;flex:1;min-width:120px" />
+          <input type="text" id="nname" placeholder="姓名" style="flex:1;min-width:90px" />
+        </div>
+        <div class="date-row" style="margin-top:8px">
+          <input type="text" id="nteam" list="teamList" placeholder="小队（如 莹领先锋队）" style="flex:1;min-width:120px" />
+          <datalist id="teamList">${ts.map(t=>`<option value="${t}">`).join('')}</datalist>
+          <select id="nposition" style="flex:1;min-width:110px">
+            <option value="">职务（成员）</option>${posOptions}
+          </select>
+          <button class="btn sm" onclick="addStudentFromUI()">添加</button>
+        </div>
+      </div>
+      ${listHtml||'<div class="empty">还没有学生，先在上方添加。</div>'}
+    </div>`;
+}
+function adminTalent(){
+  if(SESSION.adminType==='ta'){
+    const mine=DB.talent.filter(t=>t.adminId===SESSION.adminId);
+    const mineHtml=mine.length?mine.map(t=>`
+      <div class="pk-item"><div class="hd"><span>我提交的反馈</span><span>${fmtTime(t.ts)}</span></div>
+      <div class="ct">${esc(t.content)}</div></div>`).join(''):'<div class="empty">你还没有提交过人才反馈。</div>';
+    return `
+      <div class="card">
+        <h2>🧠 人才反馈（提交给教练）</h2>
+        <p class="desc">把你观察到的学员人才情况、培养建议写成文字，提交后教练可在管理员端查看。</p>
+        <textarea id="talentContent" rows="5" placeholder="例如：某学员在追问环节进步明显，建议作为小组骨干重点培养；某学员晚打卡偏晚但日进质量高，需关注稳定性……"></textarea>
+        <button class="btn" onclick="submitTalentFromUI()">提交人才反馈</button>
+        <div class="sec-title">📋 我提交的反馈</div>
+        ${mineHtml}
+      </div>`;
+  }
+  const list=DB.talent.length?DB.talent.map(t=>`
+    <div class="pk-item"><div class="hd"><span>👤 ${t.name}</span><span>${fmtTime(t.ts)}</span></div>
+    <div class="ct">${esc(t.content)}</div></div>`).join(''):'<div class="empty">还没有助教提交人才反馈。</div>';
+  return `
+    <div class="card">
+      <h2>🧠 人才反馈（助教 → 教练）</h2>
+      <p class="desc">助教提交的人才情况反馈会汇集在这里，供教练掌握各学员培养动态。</p>
+      ${list}
+    </div>`;
+}
+function submitTalentFromUI(){
+  const v=document.getElementById('talentContent').value.trim();
+  if(!v){alert('先写点什么再提交吧～');return;}
+  addTalent(SESSION.adminId,SESSION.adminName,v);
+}
+/* 人才评级 · 选苗子（人才画像卡片） */
+function adminScout(){
+  const filter=`<div class="filter-row">
+    <span class="pill">小队</span>
+    <button class="btn sm ${S.scoutTeam==='all'?'ghost':''}" onclick="S.scoutTeam='all';render()">全部</button>
+    ${teams().map(t=>`<button class="btn sm ${S.scoutTeam===t?'ghost':''}" onclick="S.scoutTeam='${t}';render()">${t}</button>`).join('')}
+  </div>
+  <div class="filter-row">
+    <span class="pill">类型</span>
+    <button class="btn sm ${S.scoutType==='all'?'ghost':''}" onclick="S.scoutType='all';render()">全部</button>
+    ${['标杆','潜力','慧眼','待激活'].map(ty=>`<button class="btn sm ${S.scoutType===ty?'ghost':''}" onclick="S.scoutType='${ty}';render()">${ty}型</button>`).join('')}
+  </div>
+  <div class="date-row" style="margin-bottom:10px">
+    <span class="pill">最低综合分</span>
+    <input type="number" id="scoutMin" value="${S.scoutMin}" min="0" max="100" style="width:90px" onchange="S.scoutMin=parseInt(this.value||'0',10);render()" />
+  </div>`;
+  let rows=studentsInTeam(S.scoutTeam).filter(s=>!s.isTa).map(s=>({s,sc:talentScores(s)}));
+  if(S.scoutType!=='all')rows=rows.filter(r=>r.sc.type.includes(S.scoutType));
+  rows=rows.filter(r=>r.sc.composite>=S.scoutMin);
+  rows.sort((a,b)=>b.sc.composite-a.sc.composite);
+  const cards=rows.length?`<div class="talent-grid">`+rows.map(({s,sc})=>`
+    <div class="talent-card">
+      <div class="tc-head">
+        <div class="tc-avatar">${animalFor(s.id)}</div>
+        <div class="tc-info">
+          <div class="tc-name">${s.name} ${s.picked?'<span class="pill">⭐苗子</span>':''}</div>
+          <div class="tc-role">${s.team} · ${s.position||'成员'}</div>
+        </div>
+        <div class="tc-type ${sc.composite>=80?'t-top':(sc.composite>=60?'t-mid':'t-low')}">${sc.type}</div>
+      </div>
+      <div class="tc-tags">
+        <span class="tc-tag">德 ${sc.de_score}</span>
+        <span class="tc-tag">才 ${sc.cai_score}</span>
+        <span class="tc-tag">岗 ${sc.gang_score}</span>
+        <span class="tc-tag">知行 ${sc.zhixing_score}</span>
+        <span class="tc-tag hi">综合 ${sc.composite}</span>
+      </div>
+      <div class="tc-foot">
+        <label class="pick-chk"><input type="checkbox" ${s.picked?'checked':''} onchange="togglePick('${s.id}',this.checked)"/> 选为苗子</label>
+        <input type="text" id="picknote_${s.id}" value="${esc(s.pickNote||'')}" placeholder="培养方向备注" style="flex:1;min-width:80px" onchange="savePickNote('${s.id}')"/>
+      </div>
+    </div>`).join('')+`</div>`
+    :'<div class="empty">没有符合条件的学生，调整筛选条件试试。</div>';
+  return `
+    <div class="card">
+      <h2>🔍 人才评级 · 选苗子</h2>
+      <p class="desc">系统按 <b>徳(打卡纪律)·才(日精进数量质量)·岗(职务胜任度)</b> 与 <b>知行果合一(日精进评分)</b> 自动算综合人才分并标注类型；教练可设阈值筛选、按分排序，勾选心仪苗子并备注。综合分 = 徳才岗×0.5 + 知行果×0.5。</p>
+      ${filter}
+      ${cards}
+    </div>`;
+}
+function togglePick(id,val){const s=DB.students.find(x=>x.id===id);if(s){s.picked=val;saveDB();render();}}
+function savePickNote(id){const s=DB.students.find(x=>x.id===id);const v=document.getElementById('picknote_'+id).value.trim();if(s){s.pickNote=v;saveDB();}}
+/* 学员提交查看：日精进(有评分) + 岗位反馈 */
+function adminSubmit(view){
+  const toggle=`<div class="filter-row">
+    <button class="btn sm ${view==='daily'?'ghost':''}" onclick="switchAdminTab('submit_daily')">📖 日精进（含评分）</button>
+    <button class="btn sm ${view==='duty'?'ghost':''}" onclick="switchAdminTab('submit_duty')">💼 岗位复盘</button>
+  </div>`;
+  if(view==='daily'){
+    let list=DB.daily.slice();
+    if(S.coachTeam!=='all'){const set=new Set(studentsInTeam(S.coachTeam).map(s=>s.id));list=list.filter(r=>set.has(r.studentId));}
+    const cards=list.length?list.map(r=>{
+      const st=DB.students.find(s=>s.id===r.studentId);
+      return `<div class="pk-review"><div class="hd">
+        <div><b>${st?st.name:'(未知)'}</b> <small style="color:var(--sub)">${st?st.team:''}${st&&st.position?' · '+st.position:''} · ${r.date} ${fmtTime(r.ts)}</small></div>
+        <span class="badge done">${r.score}分</span></div>
+        <div class="ct" style="font-size:14px;white-space:pre-wrap;word-break:break-word">${esc(r.content)}</div>
+        <div class="fb-box" style="margin-top:8px"><div class="fl">📊 ${r.grade}</div></div></div>`;
+    }).join(''):'<div class="empty">还没有学生提交日精进。</div>';
+    return `
+      <div class="card">
+        <h2>📖 学员提交 · 日精进</h2>
+        <p class="desc">所有学生在「日精进与岗位反馈 · 提交日精进」写的系统班学习成长复盘（含知行合一评分）汇集于此。可按小队筛选。</p>
+        ${teamFilterRow()}${toggle}${cards}
+      </div>`;
+  }else{
+    let list=DB.duty.slice();
+    if(S.coachTeam!=='all'){const set=new Set(studentsInTeam(S.coachTeam).map(s=>s.id));list=list.filter(r=>set.has(r.studentId));}
+    const cards=list.length?list.map(r=>{
+      const st=DB.students.find(s=>s.id===r.studentId);
+      return `<div class="pk-review"><div class="hd">
+        <div><b>${st?st.name:'(未知)'}</b> <small style="color:var(--sub)">${st?st.team:''}${st&&st.position?' · '+st.position:''} · ${r.date} ${fmtTime(r.ts)}</small></div>
+        <span class="badge team">履职</span></div>
+        <div class="ct" style="font-size:14px;white-space:pre-wrap;word-break:break-word">${esc(r.content)}</div></div>`;
+    }).join(''):'<div class="empty">还没有学生提交岗位反馈。</div>';
+    return `
+      <div class="card">
+        <h2>💼 学员提交 · 岗位复盘</h2>
+        <p class="desc">所有学生在「日精进与岗位反馈 · 岗位反馈」写的履职记录汇集于此。可按小队筛选。</p>
+        ${teamFilterRow()}${toggle}${cards}
+      </div>`;
+  }
+}
+async function addStudentFromUI(){
+  const id=document.getElementById('nid').value.trim().toUpperCase();
+  const name=document.getElementById('nname').value.trim();
+  const team=document.getElementById('nteam').value.trim();
+  const position=document.getElementById('nposition').value;
+  if(!id||!name||!team){alert('学生ID、姓名、小队都为必填');return;}
+  if(DB.students.some(s=>s.id===id)){alert('该学生ID已存在，请换一个');return;}
+  DB.students.push({id,name,team,position:position||'',picked:false,pickNote:''});
+  const ok=await saveDB();
+  if(!ok){alert('网络不稳定，保存失败，请重试');DB.students=DB.students.filter(s=>s.id!==id);render();return;}
+  alert('账号创建成功：'+id+' '+name);
+  render();
+}
+let pendingDelete=null;
+function askDelete(id){pendingDelete=id;render();}
+function cancelDelete(){pendingDelete=null;render();}
+async function deleteStudent(id){
+  pendingDelete=null;
+  const snap={students:DB.students.slice(),checkins:Object.assign({},DB.checkins),pk:DB.pk.slice(),daily:DB.daily.slice(),duty:DB.duty.slice()};
+  DB.students=DB.students.filter(s=>s.id!==id);
+  Object.keys(DB.checkins).forEach(k=>{if(k.startsWith(id+'|'))delete DB.checkins[k];});
+  DB.pk=DB.pk.filter(p=>p.studentId!==id);
+  DB.daily=DB.daily.filter(r=>r.studentId!==id);
+  DB.duty=DB.duty.filter(r=>r.studentId!==id);
+  if(SESSION.role==='student'&&SESSION.studentId===id){logout();return;}
+  const ok=await saveDB();
+  if(!ok){alert('网络不稳定，删除失败，已恢复');Object.assign(DB,snap);render();return;}
+  render();
+}
+
+/* ---------- 启动 ---------- */
+loadDB().then(()=>ensureStruct()).then(()=>{loadSession();render();});
+</script>
+</body>
+</html>

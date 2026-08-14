@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: sysclass-workbench
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars: []
