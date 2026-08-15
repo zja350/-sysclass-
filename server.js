@@ -19,6 +19,8 @@ const server=http.createServer((req,res)=>{
   fs.readFile(fp,(e,data)=>{if(e){res.statusCode=404;res.end('404 not found');return}
     const ext=path.extname(fp);
     const ct=ext==='.html'?'text/html;charset=utf-8':ext==='.js'?'text/javascript;charset=utf-8':ext==='.json'?'application/json;charset=utf-8':ext==='.css'?'text/css;charset=utf-8':'text/plain;charset=utf-8';
-    res.setHeader('Content-Type',ct);res.end(data)});
+    res.setHeader('Content-Type',ct);
+    res.setHeader('Cache-Control','no-store');
+    res.end(data)});
 });
 server.listen(PORT,HOST,()=>console.log('系统班工作台服务器已启动: http://'+HOST+':'+PORT+'  本机IP访问: http://192.168.0.17:'+PORT));

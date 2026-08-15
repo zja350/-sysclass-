@@ -84,7 +84,7 @@
   .login-card p{color:var(--sub);font-size:12.5px;margin:0 0 14px}
   .login-card input{width:100%;margin-bottom:10px}
   .acct-list{font-size:12px;color:var(--sub);background:var(--pending-soft);border-radius:12px;padding:8px 10px;margin-top:10px;line-height:1.6;text-align:left}
-  .login-note{text-align:center;color:var(--sub);font-size:12px;margin-top:22px;line-height:1.6}
+  .login-note{text-align:center;color:#b39ddb;font-size:18px;margin-top:22px;line-height:1.7;font-family:"STXingkai","华文行楷","Xingkai SC","STKaiti","华文楷体","KaiTi","楷体",cursive;letter-spacing:1.5px;font-weight:600;text-shadow:0 1px 2px rgba(179,157,219,.18)}
 
   /* ---------- 学生端 ---------- */
   .stu-layout{max-width:760px;margin:0 auto;padding:0 14px 90px;min-height:100vh}
@@ -282,7 +282,18 @@ async function saveDB(){
 function loadSession(){try{SESSION=JSON.parse(localStorage.getItem(SKEY))||{role:null}}catch(e){SESSION={role:null}}}
 function saveSession(){localStorage.setItem(SKEY,JSON.stringify(SESSION))}
 /* 自动同步：每6秒拉取服务端最新数据并刷新（多设备共享） */
-setInterval(()=>{loadDB().then(()=>{if(SESSION.role)render()}).catch(()=>{})},6000);
+let pausePolling=false; // 关键写操作（建号/删除）期间暂停轮询，避免覆盖刚提交的数据
+function isUserEditing(){ // 用户正在输入框打字时，不重建界面，避免打断输入
+  const a=document.activeElement;
+  if(!a||!a.tagName)return false;
+  const t=a.tagName;
+  return t==='INPUT'||t==='TEXTAREA'||t==='SELECT';
+}
+setInterval(()=>{
+  if(pausePolling)return;            // 提交中，先不拉不刷
+  if(isUserEditing())return;         // 正在打字，不重建 DOM（不再清空输入框）
+  loadDB().then(()=>{if(SESSION.role)render()}).catch(()=>{});
+},6000);
 
 /* ---------- 复盘评分（移植自参考代码 rate_gangwei_fupan） ---------- */
 function rateReview(text,position){
@@ -476,9 +487,9 @@ function loginAdmin(id,pwd){
 
 /* ---------- 视图状态 ---------- */
 const S={studentTab:'checkin',adminTab:'overview',adminViewMode:'admin',planDate:'',
-  dailyDate:'2026-08-17',pkDate:'2026-08-17',coachDate:'2026-08-17',coachPkDate:'all',coachPkType:'all',coachTeam:'all',
+  dailyDate:'2026-08-16',pkDate:'2026-08-16',coachDate:'2026-08-16',coachPkDate:'all',coachPkType:'all',coachTeam:'all',
   scoutTeam:'all',scoutType:'all',scoutMin:0,
-  lbTab:'personal',lbDate:'all'};
+  lbTab:'personal',lbDate:'all',editPosId:null};
 function switchStudentTab(t){S.studentTab=t;render()}
 function switchAdminTab(t){S.adminTab=t;render()}
 
@@ -552,13 +563,12 @@ function render(){
 
 /* ---------- 登录页 ---------- */
 function renderLogin(){
-  const acctHtml=ADMINS.map(a=>`${a.id}/${a.pwd}${a.type==='coach'?'（教练）':'（助教）'}`).join(' · ');
   return `
     <div class="login-wrap">
       <div class="login-hero">
         <div class="lh-logo">🌸</div>
         <h1>系统班 · 打卡 &amp; PK 工作台</h1>
-        <p>德才岗 · 知行果 人才画像 ｜ 吸引打卡 · 每日PK · 数字化管理</p>
+        <p>德才岗 · 知行果 ｜ 每日PK · 数字化管理</p>
       </div>
       <div class="login-cards">
         <div class="login-card">
@@ -575,10 +585,10 @@ function renderLogin(){
           <input type="text" id="admId" placeholder="账号（如 coach）"/>
           <input type="text" id="admPwd" placeholder="口令" style="margin-top:8px"/>
           <button class="btn ghost" onclick="loginAdmin(document.getElementById('admId').value,document.getElementById('admPwd').value)">进入管理员端</button>
-          <div class="acct-list">账号：${acctHtml}</div>
+          <!-- 管理端账号列表已隐藏 -->
         </div>
       </div>
-      <div class="login-note">🔐 两类身份相互独立、互不可见：学生看不到教练/助教反馈；管理员看全部后台。</div>
+      <div class="login-note">刻意练习，及时复习，平台实习，最终实现人生逆袭</div>
     </div>`;
 }
 
@@ -651,13 +661,13 @@ function studentCheckin(me){
   return `
     <div class="card">
       <div class="date-row"><span class="pill">📅 ${S.dailyDate}</span>
-        <input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto" /></div>
+        <input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-16" style="width:auto" /></div>
       <h2>🚩 报到日 · 8月16日行程</h2>
       <p class="desc">${me.team} · 按节点完成报到，抵达即打卡。完成全部 4 项视为报到成功（${travelDone}/4）。</p>
       ${travelGrid}
     </div>
     <div class="card">
-      <h2>🗓️ 每日行程打卡（8月17日起）</h2>
+      <h2>🗓️ 每日行程打卡（8月16日起）</h2>
       <p class="desc">每日早 / 中 / 晚三次行程打卡（${dailyDone}/3 已完成）。</p>
       ${dayRow}
     </div>
@@ -773,7 +783,7 @@ function studentReview(me){
         <div class="guide-hi">✍️ 写什么都行~</div>
         <div class="guide-sub">但如果你想拿高分：写出「知·行·果 + 知行合一自检」，系统会自动评知行合一深度哦。</div>
       </div>
-      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto"/></div>
+      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-16" style="width:auto"/></div>
       <textarea id="dailyContent" rows="10" placeholder="今天最触动我的一句话是……" oninput="document.getElementById('wcDaily').textContent='已写 '+this.value.length+' 字'"></textarea>
       <div class="word-count"><span id="wcDaily">已写 0 字</span><span class="muted">（500 字以上评优率更高哦）</span></div>
       <button class="btn" onclick="submitDailyFromUI()">提交日精进</button>
@@ -784,7 +794,7 @@ function studentReview(me){
     <div class="card">
       <h2>💼 岗位反馈</h2>
       <p class="desc">作为 <b>${roleLabel}</b>，反馈你履职了什么。${me.position?'':'（暂未分配职务，可写团队贡献与观察。）'}</p>
-      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-17" style="width:auto"/></div>
+      <div class="date-row"><input type="date" value="${S.dailyDate}" onchange="S.dailyDate=this.value;render()" min="2026-08-16" style="width:auto"/></div>
       <textarea id="dutyContent" rows="8" placeholder="${me.position?('作为'+me.position+'，今天我带头/参与做了___、带动了谁、解决了什么问题？'):'作为团队成员，今天我在队伍里承担了什么角色、贡献了什么？'}"></textarea>
       <button class="btn" onclick="submitDutyFromUI()">提交岗位反馈</button>
       <div class="sec-title">📋 我的岗位反馈记录</div>
@@ -1010,7 +1020,7 @@ function adminOverview(){
       <p class="desc">实时反映所辖小队学生参与情况，可按小队与日期筛选。${SESSION.adminType==='ta'?'（助教视角，与教练同权）':''}</p>
       ${teamFilterRow()}
       <div class="date-row" style="margin-bottom:12px">
-        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-17" style="width:auto"/>
+        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-16" style="width:auto"/>
         <span class="pill">统计日</span>
       </div>
       <div class="stats">${cards.map(c=>`<div class="stat"><div class="v ${c.cls||''}">${c.v}</div><div class="k">${c.k}</div></div>`).join('')}</div>
@@ -1039,7 +1049,7 @@ function adminStudents(){
       <p class="desc">逐人、逐节点掌握打卡状态，可见各岗位管理者。可按小队筛选。</p>
       ${teamFilterRow()}
       <div class="date-row" style="margin-bottom:6px">
-        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-17" style="width:auto"/>
+        <input type="date" value="${S.coachDate}" onchange="S.coachDate=this.value;render()" min="2026-08-16" style="width:auto"/>
         <span class="pill">查看日</span>
       </div>
       ${legend}
@@ -1097,10 +1107,17 @@ function adminManage(){
     const stus=DB.students.filter(s=>s.team===t&&!s.isTa);
     return `<div class="team-group">
       <div class="cg-title"><span>🏅 ${t}</span><span class="pill">${stus.length}人</span></div>
-      ${stus.map(s=>{const pd=pendingDelete===s.id;return `<div class="mgmt-row">
+      ${stus.map(s=>{const pd=pendingDelete===s.id;const editing=S.editPosId===s.id;
+        const posCell=editing?`<input id="posedit" value="${esc(s.position||'成员')}" style="width:96px" autofocus/>`:`<small>${s.position||'成员'}</small>`;
+        const actCell=pd
+          ?`<button class="btn sm danger" onclick="deleteStudent('${s.id}')">再点确认删除</button><button class="btn sm ghost" onclick="cancelDelete()">取消</button>`
+          :(editing
+            ?`<button class="btn sm" onclick="savePos('${s.id}')">保存</button><button class="btn sm ghost" onclick="S.editPosId=null;render()">取消</button>`
+            :`<button class="btn sm" onclick="S.editPosId='${s.id}';render()">改职务</button><button class="btn sm danger" onclick="askDelete('${s.id}')">删除</button>`);
+        return `<div class="mgmt-row">
         <span class="id">${s.id}</span>
-        <span class="nm">${s.name}${s.picked?' <span class="pill">⭐苗子</span>':''}<small>${s.position||'成员'}</small></span>
-        ${pd?'<button class="btn sm danger" onclick="deleteStudent(\''+s.id+'\')">再点确认删除</button><button class="btn sm ghost" onclick="cancelDelete()">取消</button>':'<button class="btn sm danger" onclick="askDelete(\''+s.id+'\')">删除</button>'}
+        <span class="nm">${s.name}${s.picked?' <span class="pill">⭐苗子</span>':''} ${posCell}</span>
+        ${actCell}
       </div>`}).join('')}
     </div>`;
   }).join('');
@@ -1126,6 +1143,20 @@ function adminManage(){
       </div>
       ${listHtml||'<div class="empty">还没有学生，先在上方添加。</div>'}
     </div>`;
+}
+/* 内联修改学员职务（竞选完成后更新） */
+async function savePos(id){
+  const inp=document.getElementById('posedit');
+  const s=DB.students.find(x=>x.id===id);
+  if(!s)return;
+  const v=inp?inp.value.trim():'';
+  s.position=v||'成员';
+  pausePolling=true;
+  try{
+    const ok=await saveDB();
+    if(!ok){alert('保存失败，请重试');await loadDB();render();return;}
+    S.editPosId=null;render();
+  }finally{pausePolling=false;}
 }
 function adminTalent(){
   if(SESSION.adminType==='ta'){
@@ -1253,33 +1284,39 @@ function adminSubmit(view){
   }
 }
 async function addStudentFromUI(){
-  const id=document.getElementById('nid').value.trim().toUpperCase();
-  const name=document.getElementById('nname').value.trim();
-  const team=document.getElementById('nteam').value.trim();
-  const position=document.getElementById('nposition').value;
-  if(!id||!name||!team){alert('学生ID、姓名、小队都为必填');return;}
-  if(DB.students.some(s=>s.id===id)){alert('该学生ID已存在，请换一个');return;}
-  DB.students.push({id,name,team,position:position||'',picked:false,pickNote:''});
-  const ok=await saveDB();
-  if(!ok){alert('网络不稳定，保存失败，请重试');DB.students=DB.students.filter(s=>s.id!==id);render();return;}
-  alert('账号创建成功：'+id+' '+name);
-  render();
+  pausePolling=true; // 提交期间暂停轮询，防止服务器旧数据覆盖刚建的号
+  try{
+    const id=document.getElementById('nid').value.trim().toUpperCase();
+    const name=document.getElementById('nname').value.trim();
+    const team=document.getElementById('nteam').value.trim();
+    const position=document.getElementById('nposition').value;
+    if(!id||!name||!team){alert('学生ID、姓名、小队都为必填');return;}
+    if(DB.students.some(s=>s.id===id)){alert('该学生ID已存在，请换一个');return;}
+    DB.students.push({id,name,team,position:position||'成员',picked:false,pickNote:''});
+    const ok=await saveDB();
+    if(!ok){alert('网络不稳定，保存失败，请重试');DB.students=DB.students.filter(s=>s.id!==id);render();return;}
+    alert('账号创建成功：'+id+' '+name);
+    render();
+  } finally{ pausePolling=false; }
 }
 let pendingDelete=null;
 function askDelete(id){pendingDelete=id;render();}
 function cancelDelete(){pendingDelete=null;render();}
 async function deleteStudent(id){
-  pendingDelete=null;
-  const snap={students:DB.students.slice(),checkins:Object.assign({},DB.checkins),pk:DB.pk.slice(),daily:DB.daily.slice(),duty:DB.duty.slice()};
-  DB.students=DB.students.filter(s=>s.id!==id);
-  Object.keys(DB.checkins).forEach(k=>{if(k.startsWith(id+'|'))delete DB.checkins[k];});
-  DB.pk=DB.pk.filter(p=>p.studentId!==id);
-  DB.daily=DB.daily.filter(r=>r.studentId!==id);
-  DB.duty=DB.duty.filter(r=>r.studentId!==id);
-  if(SESSION.role==='student'&&SESSION.studentId===id){logout();return;}
-  const ok=await saveDB();
-  if(!ok){alert('网络不稳定，删除失败，已恢复');Object.assign(DB,snap);render();return;}
-  render();
+  pausePolling=true; // 删除期间暂停轮询，防止旧数据覆盖删除结果
+  try{
+    pendingDelete=null;
+    const snap={students:DB.students.slice(),checkins:Object.assign({},DB.checkins),pk:DB.pk.slice(),daily:DB.daily.slice(),duty:DB.duty.slice()};
+    DB.students=DB.students.filter(s=>s.id!==id);
+    Object.keys(DB.checkins).forEach(k=>{if(k.startsWith(id+'|'))delete DB.checkins[k];});
+    DB.pk=DB.pk.filter(p=>p.studentId!==id);
+    DB.daily=DB.daily.filter(r=>r.studentId!==id);
+    DB.duty=DB.duty.filter(r=>r.studentId!==id);
+    if(SESSION.role==='student'&&SESSION.studentId===id){logout();return;}
+    const ok=await saveDB();
+    if(!ok){alert('网络不稳定，删除失败，已恢复');Object.assign(DB,snap);render();return;}
+    render();
+  } finally{ pausePolling=false; }
 }
 
 /* ---------- 启动 ---------- */
